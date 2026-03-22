@@ -4,8 +4,11 @@
     <div>
         <h3>{{ event.title }}</h3>
         <p>Date: {{ event.date }}</p>
+        <p>Time : {{ event.time }}</p>
         <p>Venue: {{ event.venue }}</p>
+        <p>Capacity: {{ event.capacity }}</p>
         <p>{{ event.description }}</p>
+
 
         {% if event.id in user_registrations %}
             <button disabled>Joined</button>
@@ -19,5 +22,6 @@
 
         
     </div>
-    <a href="{% url 'my_events' %}">My Events</a>
+    
 {% endfor %}
+<a href="{% url 'my_events' %}">My Events</a>
