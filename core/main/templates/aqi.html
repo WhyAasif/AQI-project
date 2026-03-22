@@ -1,0 +1,31 @@
+<h1>🌍 Live Air Quality Index</h1>
+
+{% if aqi %}
+    <div class="card">
+
+        <h2>{{ city }}</h2>
+
+        {% if aqi <= 50 %}
+            <div class="aqi-box good">{{ aqi }}</div>
+            <p>Good</p>
+        {% elif aqi <= 100 %}
+            <div class="aqi-box moderate">{{ aqi }}</div>
+            <p>Moderate</p>
+        {% elif aqi <= 200 %}
+            <div class="aqi-box unhealthy"><strong>AQI : {{ aqi }}</strong></div>
+            <p>Unhealthy</p>
+        {% else %}
+            <div class="aqi-box hazardous">{{ aqi }}</div>
+            <p>Hazardous</p>
+        {% endif %}
+
+        <p><strong>PM2.5:</strong> {{ pm25 }}</p>
+        <p><strong>PM10:</strong> {{ pm10 }}</p>
+
+    </div>
+{% else %}
+    <p>No AQI data available</p>
+{% endif %}
+
+
+

@@ -1,0 +1,13 @@
+<h2>My Events</h2>
+
+{% for reg in registrations %}
+    <div>
+        <h3>{{ reg.event.title }}</h3>
+        <p>Date: {{ reg.event.date }}</p>
+        <p>Venue: {{ reg.event.venue }}</p>
+        <p>Status: Joined</p>
+        <hr>
+    </div>
+{% empty %}
+    <p>You have not joined any events yet.</p>
+{% endfor %}
