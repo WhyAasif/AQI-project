@@ -123,7 +123,7 @@ def my_events(request):
 
 # import requests
 
-def aqi_view(request):
+def home_view(request):
     url = "https://api.waqi.info/feed/here/?token=020f43646c18e56c461bb0370599675f5ee742e6"
     response = requests.get(url)
     data = response.json()
@@ -136,4 +136,4 @@ def aqi_view(request):
         context['pm25'] = data['data']['iaqi'].get('pm25', {}).get('v', 'N/A')
         context['pm10'] = data['data']['iaqi'].get('pm10', {}).get('v', 'N/A')
 
-    return render(request, 'aqi.html', context)
+    return render(request, 'home.html', context)
