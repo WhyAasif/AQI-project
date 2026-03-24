@@ -1,16 +1,119 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from .forms import UserRegisterForm
 from django.contrib.auth import authenticate, login, logout
-from .models import Event , Registration
-from django.contrib.auth.decorators import login_required
+from .models import Event, Registration, User
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.db.models import Count
 import requests
 
+# Helper to check if user is admin
+def is_admin(user):
+    return user.is_authenticated and (user.role == 'admin' or user.is_superuser)
 
-def home(request):
-    return HttpResponse("Hello Aasif, your project started!")
+def get_aqi_category(aqi):
+    """Returns category and advice based on AQI value"""
+    if aqi <= 50:
+        return "Good", "Green", "Air quality is satisfactory, and air pollution poses little or no risk."
+    elif aqi <= 100:
+        return "Moderate", "Yellow", "Air quality is acceptable. However, there may be a risk for some people."
+    elif aqi <= 150:
+        return "Unhealthy for Sensitive Groups", "orange", "Members of sensitive groups may experience health effects."
+    elif aqi <= 200:
+        return "Unhealthy", "red", "Everyone may begin to experience health effects."
+    elif aqi <= 300:
+        return "Very Unhealthy", "Purple", "Health alert: The risk of health effects is increased for everyone."
+    else:
+        return "Hazardous", "Maroon", "Health warning of emergency conditions: the entire population is likely to be affected."
+
+def get_pm25_color(aqi):
+    """
+    Returns the corresponding color based on the AQI value.
+    """
+    if aqi <= 12:
+        return "Green"
+    elif aqi <= 35:
+        return "Yellow"
+    elif aqi <= 150:
+        return "Orange"
+    elif aqi <= 150:
+        return "Red"
+    elif aqi <= 250:
+        return "Purple"
+    else:
+        return "Maroon"
+def get_pm10_color(aqi):
+    """
+    Returns the corresponding color based on the AQI value.
+    """
+    if aqi <= 54:
+        return "Green"
+    elif aqi <= 154 :
+        return "Yellow"
+    elif aqi <= 354 :
+        return "Orange"
+    elif aqi <= 424 :
+        return "Red"
+    elif aqi <= 604:
+        return "Purple"
+    else:
+        return "Maroon"
 
 
+
+
+def home_view(request):
+    # city_query = request.GET.get('city', 'Delhi')
+    # Using WAQI search API to get the correct station
+    token = "020f43646c18e56c461bb0370599675f5ee742e6"
+    url = f"https://api.waqi.info/feed/here/?token={token}"
+    
+    context = {}
+    try:
+        response = requests.get(url, timeout=5)
+        data = response.json()
+        if data['status'] == 'ok':
+            aqi = data['data']['aqi']
+            context['aqi'] = aqi
+            context['city'] = data['data']['city']['name']
+            context['pm25'] = data['data']['iaqi'].get('pm25', {}).get('v', 'N/A')
+            context['pm10'] = data['data']['iaqi'].get('pm10', {}).get('v', 'N/A')
+            context['o3'] = data['data']['iaqi'].get('o3', {}).get('v', 'N/A')
+            context['no2'] = data['data']['iaqi'].get('no2', {}).get('v', 'N/A')
+            context['lat'] = data['data']['city']['geo'][0]
+            context['lon'] = data['data']['city']['geo'][1]
+            
+            # Add Health Category & Advice
+            category, color, advice = get_aqi_category(aqi)
+            context['category'] = category
+            context['color'] = color
+            context['advice'] = advice
+            context['pm25color'] = pm25color
+            context['pm10color'] = pm10color
+            pm25color = get_pm25_color(context['pm25'])
+            pm10color = get_pm10_color(context['pm10'])
+    except Exception:
+        context['error'] = "Could not fetch live data. Please check your connection."
+
+    return render(request, 'home.html', context)
+
+@login_required
+def volunteer_report(request):
+    """User side report of their own activity"""
+    registrations = Registration.objects.filter(user=request.user).order_by('-reg_date')
+    return render(request, 'volunteer_report.html', {
+        'registrations': registrations
+    })
+
+@user_passes_test(is_admin)
+def admin_report(request):
+    """Admin side summary of all events and participation"""
+    events = Event.objects.annotate(current_volunteers=Count('registration')).all()
+    return render(request, 'admin_report.html', {
+        'events': events
+    })
+
+# --- Existing Views ---
 def register(request):
     if request.method == 'POST':
         form = UserRegisterForm(request.POST)
@@ -19,25 +122,18 @@ def register(request):
             return redirect('login')
     else:
         form = UserRegisterForm()
-
     return render(request, 'register.html', {'form': form})
-
 
 def user_login(request):
     if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-
-        user = authenticate(request, username=username, password=password)
-
-        if user is not None:
+        u = request.POST.get('username')
+        p = request.POST.get('password')
+        user = authenticate(request, username=u, password=p)
+        if user:
             login(request, user)
             return redirect('home')
-        else:
-            return render(request, 'login.html', {'error': 'Invalid credentials'})
-
+        return render(request, 'login.html', {'error': 'Invalid credentials'})
     return render(request, 'login.html')
-
 
 def user_logout(request):
     logout(request)
@@ -45,97 +141,24 @@ def user_logout(request):
 
 def event_list(request):
     events = Event.objects.all()
-
-    user_registrations = []
+    user_reg_ids = []
     if request.user.is_authenticated:
-        user_registrations = Registration.objects.filter(user=request.user).values_list('event_id', flat=True)
-
-    return render(request, 'event_list.html', {
-        'events': events,
-        'user_registrations': user_registrations
-    })
-
+        user_reg_ids = Registration.objects.filter(user=request.user).values_list('event_id', flat=True)
+    return render(request, 'event_list.html', {'events': events, 'user_registrations': user_reg_ids})
 
 @login_required
 def join_event(request, event_id):
-    event = Event.objects.get(id=event_id)
-    user = request.user
-    if not Registration.objects.filter(user=user, event=event).exists():
-        Registration.objects.create(user=user, event=event)
-    return redirect('events')
+    event = get_object_or_404(Event, id=event_id)
+    # Check capacity
+    current_count = Registration.objects.filter(event=event).count()
+    if current_count >= event.capacity:
+        # You might want to pass an error message here
+        return redirect('events')
+    
+    Registration.objects.get_or_create(user=request.user, event=event)
+    return redirect('my_events')
 
 @login_required
 def my_events(request):
     registrations = Registration.objects.filter(user=request.user)
-
-    return render(request, 'my_events.html', {
-        'registrations': registrations
-    })
-
-# def aqi_view(request):
-#     data = None
-
-#     if request.method == 'POST':
-#         city = request.POST.get('city')
-
-#         # Step 1: Convert city → lat/lon
-#         geo_url = f"http://api.openweathermap.org/geo/1.0/direct?q={city}&limit=1&appid=3b97376b67bc9aaba3a87f1c4a827d5c"
-#         geo_response = requests.get(geo_url).json()
-
-#         if geo_response:
-#             lat = geo_response[0]['lat']
-#             lon = geo_response[0]['lon']
-
-#             # Step 2: Get AQI using lat/lon
-#             aqi_url = f"http://api.openweathermap.org/data/2.5/air_pollution?lat={lat}&lon={lon}&appid=3b97376b67bc9aaba3a87f1c4a827d5c"
-#             aqi_response = requests.get(aqi_url).json()
-
-#             aqi_value = aqi_response['list'][0]['main']['aqi']
-#             components = aqi_response['list'][0]['components']
-
-#             # AQI category (OpenWeather scale 1–5)
-#             if aqi_value == 1:
-#                 category = "Good"
-#                 color = "green"
-#             elif aqi_value == 2:
-#                 category = "Fair"
-#                 color = "yellow"
-#             elif aqi_value == 3:
-#                 category = "Moderate"
-#                 color = "orange"
-#             elif aqi_value == 4:
-#                 category = "Poor"
-#                 color = "red"
-#             else:
-#                 category = "Very Poor"
-#                 color = "purple"
-
-#             data = {
-#                 'city': city,
-#                 'aqi': aqi_value,
-#                 'pm25': components.get('pm2_5', 'N/A'),
-#                 'pm10': components.get('pm10', 'N/A'),
-#                 'category': category,
-#                 'color': color
-#             }
-
-#     return render(request, 'aqi.html', {'data': data})
-
-# import requests
-
-def home_view(request):
-    url = "https://api.waqi.info/feed/here/?token=020f43646c18e56c461bb0370599675f5ee742e6"
-    response = requests.get(url)
-    data = response.json()
-
-    context = {}
-
-    if data['status'] == 'ok':
-        context['aqi'] = data['data']['aqi']
-        context['city'] = data['data']['city']['name']
-        context['pm25'] = data['data']['iaqi'].get('pm25', {}).get('v', 'N/A')
-        context['pm10'] = data['data']['iaqi'].get('pm10', {}).get('v', 'N/A')
-        context['lat']= data['data']['city']['geo'][0]
-        context['lon']= data['data']['city']['geo'][1]
-
-    return render(request, 'home.html', context)
+    return render(request, 'my_events.html', {'registrations': registrations})

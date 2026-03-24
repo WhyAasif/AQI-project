@@ -1,131 +1,259 @@
 {% extends "base.html" %}
 
-{% block title %}Live AQI - {{ city|default:"India" }}{% endblock %}
-{% block extra_css %}<style>
-    /* Force 4:3 Aspect Ratio for Map */
+{% block title %}Live AQI Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-container { min-height: 80vh; }
     .map-container {
-        position: relative;
-        width: 30%;
-        aspect-ratio: 3 / 4; /* This creates the 4:3 box */
-        border-radius: 12px;
+        height: 400px;
+        border-radius: 16px;
         overflow: hidden;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        position: sticky;
+        top: 90px;
     }
     #map { height: 100%; width: 100%; }
-
-    /* Dashboard Styling */
-    .info-card { border-radius: 12px; height: 100%; }
-    .stat-box { 
-        padding: 10px; 
-        border-bottom: 1px solid #eee; 
-        display: flex; 
-        justify-content: space-between; 
+    
+    .aqi-card { border-radius: 20px; border: none; }
+    .aqi-value { font-size: 5rem; line-height: 1; }
+    
+    .pollutant-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 15px;
     }
-    .pollutant-name { font-weight: bold; color: #555; }
-    .pollutant-value { font-family: 'Courier New', Courier, monospace; font-weight: bold; }
+    .pollutant-box {
+        background: white;
+        padding: 15px;
+        border-radius: 12px;
+        text-align: center;
+        border: 1px solid #eee;
+    }
+
+    /* Search Suggestions Styling */
+    .search-wrapper { position: relative; }
+    #search-results {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        max-height: 300px;
+        overflow-y: auto;
+        display: none;
+    }
+    .suggestion-item {
+        padding: 12px 20px;
+        cursor: pointer;
+        border-bottom: 1px solid #f8f9fa;
+        transition: background 0.2s;
+    }
+    .suggestion-item:hover { background: #f0f7ff; }
+    .suggestion-item:last-child { border-bottom: none; }
 </style>
 {% endblock %}
+
 {% block content %}
-<div class="container-fluid py-3">
-    <div class="row g-3">
-        
+<div class="container py-4 dashboard-container">
+    <!-- Top Search Bar -->
+    <div class="row mb-4 justify-content-center">
+        <div class="col-md-8 search-wrapper">
+            <div class="input-group input-group-lg shadow-sm">
+                <span class="input-group-text bg-white border-0 ps-4">
+                    <i class="bi bi-search text-primary"></i>
+                </span>
+                <input type="text" id="city-search" class="form-control border-0 py-3" placeholder="Search city or station (e.g. Noida)..." autocomplete="off">
+            </div>
+            <div id="search-results"></div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Left Side: AQI Dashboard -->
         <div class="col-lg-8">
+            <div class="card aqi-card shadow-sm mb-4" id="main-card">
+                <div class="card-body p-4 p-md-5">
+                    <div class="row align-items-center">
+                        <div class="col-md-6 text-center text-md-start mb-4 mb-md-0 border-end-md">
+                            <h6 class="text-uppercase tracking-widest text-muted fw-bold mb-2">Live Air Quality</h6>
+                            <h2 id="display-city" class="fw-bold mb-3">Detecting Location...</h2>
+                            <div id="aqi-color-box" class="d-inline-block px-4 py-2 rounded-pill text-white fw-bold mb-3 shadow-sm">
+                                <span id="display-category">Loading...</span>
+                            </div>
+                            <p id="display-advice" class="text-muted small px-2">Please wait while we fetch the air quality data for your area.</p>
+                        </div>
+                        <div class="col-md-6 text-center">
+                            <h1 id="display-aqi" class="aqi-value fw-extrabold text-dark mb-0">--</h1>
+                            <p class="text-muted fw-medium mt-0">AQI Index</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <h5 class="fw-bold mb-3"><i class="bi bi-activity text-primary me-2"></i>Key Pollutants</h5>
+                <div class="pollutant-grid" id="pollutant-list">
+                    <!-- Dynamic Pollutants -->
+                    <div class="pollutant-box shadow-sm">
+                        <small class="text-muted d-block mb-1">PM2.5</small>
+                        <h4 class="fw-bold mb-0" id="val-pm25">--</h4>
+                    </div>
+                    <div class="pollutant-box shadow-sm">
+                        <small class="text-muted d-block mb-1">PM10</small>
+                        <h4 class="fw-bold mb-0" id="val-pm10">--</h4>
+                    </div>
+                    <div class="pollutant-box shadow-sm">
+                        <small class="text-muted d-block mb-1">Ozone(O3)</small>
+                        <h4 class="fw-bold mb-0" id="val-o3">--</h4>
+                    </div>
+                    <div class="pollutant-box shadow-sm">
+                        <small class="text-muted d-block mb-1">Nitrogen Dio(NO2)</small>
+                        <h4 class="fw-bold mb-0" id="val-no2">--</h4>
+                    </div>
+                    <div class="pollutant-box shadow-sm">
+                        <small class="text-muted d-block mb-1">Sulfur Dio(SO2)</small>
+                        <h4 class="fw-bold mb-0" id="val-so2">--</h4>
+                    </div>
+                    <div class="pollutant-box shadow-sm">
+                        <small class="text-muted d-block mb-1">Carbon Mono(CO)</small>
+                        <h4 class="fw-bold mb-0" id="val-co">--</h4>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="alert alert-light border shadow-sm rounded-4 p-3 small text-muted">
+                <i class="bi bi-info-circle-fill text-primary me-2"></i>
+                 Last updated: <span id="last-update">--</span>
+            </div>
+        </div>
+
+        <!-- Right Side: Small Map -->
+        <div class="col-lg-4">
             <div class="map-container">
                 <div id="map"></div>
             </div>
-        </div>
-
-        <div class="col-lg-4">
-            <div class="card info-card shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">Station: {{ city|default:"India Detail" }}</h5>
-                </div>
-                <div class="card-body p-0" style="max-height: 600px; overflow-y: auto;">
-                    
-                    <div class="text-center py-4 bg-light border-bottom">
-                        <h6 class="text-muted mb-1">Current AQI</h6>
-                        <h1 class="display-3 fw-bold text-danger">{{ aqi|default:"228" }}</h1>
-                        <span class="badge bg-danger px-3 py-2">Very Unhealthy</span>
-                    </div>
-
-                    <div class="px-3 py-2">
-                        <small class="text-uppercase text-muted fw-bold">Pollutants</small>
-                        <div class="stat-box">
-                            <span class="pollutant-name">PM2.5</span>
-                            <span class="pollutant-value text-danger">{{ pm25|default:"228" }}</span>
-                        </div>
-                        <div class="stat-box">
-                            <span class="pollutant-name">PM10</span>
-                            <span class="pollutant-value text-warning">{{ pm10|default:"177" }}</span>
-                        </div>
-                        <div class="stat-box">
-                            <span class="pollutant-name">Ozone (O3)</span>
-                            <span class="pollutant-value text-success">{{ o3|default:"2" }}</span>
-                        </div>
-                        <div class="stat-box">
-                            <span class="pollutant-name">Nitrogen (NO2)</span>
-                            <span class="pollutant-value text-success">{{ no2|default:"18" }}</span>
-                        </div>
-                        <div class="stat-box">
-                            <span class="pollutant-name">Sulfur (SO2)</span>
-                            <span class="pollutant-value text-success">{{ so2|default:"4" }}</span>
-                        </div>
-                        <div class="stat-box">
-                            <span class="pollutant-name">Carbon (CO)</span>
-                            <span class="pollutant-value text-success">{{ co|default:"8" }}</span>
-                        </div>
-
-                        <small class="text-uppercase text-muted fw-bold d-block mt-3">Weather / Environment</small>
-                        <div class="stat-box">
-                            <span class="pollutant-name">Humidity (R.H.)</span>
-                            <span>{{ humidity|default:"78" }}%</span>
-                        </div>
-                        <div class="stat-box">
-                            <span class="pollutant-name">Temperature</span>
-                            <span>{{ temp|default:"21" }}°C</span>
-                        </div>
-                        <div class="stat-box">
-                            <span class="pollutant-name">Wind Speed</span>
-                            <span>{{ wind|default:"1" }} km/h</span>
-                        </div>
-                    </div>
-
-                </div>
-                <div class="card-footer bg-white small text-center text-muted">
-                    Last Sync: Tuesday, 24 March 2026
-                </div>
+            <div class="mt-3 text-center small text-muted">
+                <i class="bi bi-layers me-1"></i> Interactive AQI Map Layer
             </div>
         </div>
-
     </div>
 </div>
 {% endblock %}
+
 {% block extra_js %}
 <script>
-    // Initialize map centered on India or City coordinates
-    // We use default coordinates if city data isn't available
-    const lat = {{ lat|default:20.5937 }};
-    const lng = {{ lon|default:78.9629 }};
-    const zoomLevel = {% if city %}11{% else %}5{% endif %};
+    const TOKEN = "020f43646c18e56c461bb0370599675f5ee742e6";
+    let map, marker, aqiLayer;
 
-    const map = L.map('map').setView([lat, lng], zoomLevel);
+    // Initialize Map
+    function initMap(lat, lon, aqi) {
+        if (!map) {
+            map = L.map('map').setView([lat, lon], 12);
+            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
+                attribution: '&copy; Esri'
+            }).addTo(map);
 
-    // 1. OpenStreetMap Base Layer
-   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
-    attribution: 'Esri'
-}).addTo(map);
+            // Add WAQI Tiles
+            aqiLayer = L.tileLayer(`https://tiles.waqi.info/tiles/usepa-aqi/{z}/{x}/{y}.png?token=${TOKEN}`).addTo(map);
+        } else {
+            map.setView([lat, lon], 12);
+        }
 
-    // 2. WAQI Air Quality Tiles Overlay
-    // Replace 'YOUR_TOKEN' with your actual token
-    const waqiToken = "020f43646c18e56c461bb0370599675f5ee742e6"; 
-    L.tileLayer(`https://tiles.waqi.info/tiles/usepa-aqi/{z}/{x}/{y}.png?token=${waqiToken}`).addTo(map);
+        if (marker) map.removeLayer(marker);
+        marker = L.marker([lat, lon]).addTo(map)
+            .bindPopup(`AQI: ${aqi}`)
+            .openPopup();
+    }
 
-    {% if city %}
-    // Add a marker for the current city
-    L.marker([lat, lng]).addTo(map)
-        .bindPopup("<b>{{ city }}</b><br>AQI: {{ aqi }}")
-        .openPopup();
-    {% endif %}
+    function getAQIMetadata(aqi) {
+        if (aqi <= 50) return { cat: "Good", color: "#009966", advice: "Air quality is satisfactory." };
+        if (aqi <= 100) return { cat: "Moderate", color: "#ffde33", advice: "Acceptable quality; sensitive individuals should limit outdoor exertion." };
+        if (aqi <= 150) return { cat: "Unhealthy for Sensitive Groups", color: "#ff9933", advice: "Sensitive groups should reduce prolonged outdoor exertion." };
+        if (aqi <= 200) return { cat: "Unhealthy", color: "#be0b0be9", advice: "Everyone may begin to experience health effects." };
+        if (aqi <= 300) return { cat: "Very Unhealthy", color: "#4a016e", advice: "Health alert: everyone may experience more serious health effects." };
+        return { cat: "Hazardous", color: "#430013", advice: "Health warning of emergency conditions." };
+    }
+
+    function updateUI(data) {
+        const aqi = data.aqi;
+        const meta = getAQIMetadata(aqi);
+
+        document.getElementById('display-city').innerText = data.city.name;
+        document.getElementById('display-aqi').innerText = aqi;
+        document.getElementById('display-aqi').style.color = meta.color;
+        document.getElementById('display-category').innerText = meta.cat;
+        document.getElementById('aqi-color-box').style.backgroundColor = meta.color;
+        document.getElementById('display-advice').innerText = meta.advice;
+        document.getElementById('last-update').innerText = data.time.s;
+
+        // Update Pollutants
+        const iaqi = data.iaqi;
+        document.getElementById('val-pm25').innerText = iaqi.pm25 ? iaqi.pm25.v : '--';
+        document.getElementById('val-pm10').innerText = iaqi.pm10 ? iaqi.pm10.v : '--';
+        document.getElementById('val-o3').innerText = iaqi.o3 ? iaqi.o3.v : '--';
+        document.getElementById('val-no2').innerText = iaqi.no2 ? iaqi.no2.v : '--';
+        document.getElementById('val-so2').innerText = iaqi.so2 ? iaqi.so2.v : '--';
+        document.getElementById('val-co').innerText = iaqi.co ? iaqi.co.v : '--';
+
+        // Update Map
+        initMap(data.city.geo[0], data.city.geo[1], aqi);
+    }
+
+    // Load initial data based on IP
+    async function loadInitialData() {
+        try {
+            const res = await fetch(`https://api.waqi.info/feed/here/?token=${TOKEN}`);
+            const json = await res.json();
+            if (json.status === 'ok') updateUI(json.data);
+        } catch (e) { console.error("Initial load failed", e); }
+    }
+
+    // Search Logic
+    const searchInput = document.getElementById('city-search');
+    const resultsBox = document.getElementById('search-results');
+
+    searchInput.addEventListener('input', async (e) => {
+        const val = e.target.value.trim();
+        if (val.length >= 3) {
+            try {
+                const res = await fetch(`https://api.waqi.info/search/?keyword=${val}&token=${TOKEN}`);
+                const json = await res.json();
+                if (json.status === 'ok') {
+                    resultsBox.innerHTML = '';
+                    json.data.forEach(station => {
+                        const div = document.createElement('div');
+                        div.className = 'suggestion-item';
+                        div.innerHTML = `<strong>${station.station.name}</strong> <span class="badge bg-light text-dark float-end">AQI: ${station.aqi}</span>`;
+                        div.onclick = () => selectStation(station.uid);
+                        resultsBox.appendChild(div);
+                    });
+                    resultsBox.style.display = 'block';
+                }
+            } catch (e) { console.error("Search failed", e); }
+        } else {
+            resultsBox.style.display = 'none';
+        }
+    });
+
+    async function selectStation(uid) {
+        resultsBox.style.display = 'none';
+        searchInput.value = '';
+        try {
+            const res = await fetch(`https://api.waqi.info/feed/@${uid}/?token=${TOKEN}`);
+            const json = await res.json();
+            if (json.status === 'ok') updateUI(json.data);
+        } catch (e) { console.error("Feed fetch failed", e); }
+    }
+
+    // Close search results on click outside
+    document.addEventListener('click', (e) => {
+        if (!searchInput.contains(e.target)) resultsBox.style.display = 'none';
+    });
+
+    window.onload = loadInitialData;
 </script>
 {% endblock %}
-

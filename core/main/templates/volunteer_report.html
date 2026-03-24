@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Volunteer Activity Log{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="card shadow-sm border-0 rounded-4">
+        <div class="card-header bg-white p-4 border-bottom d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="fw-bold mb-0">Activity Log</h2>
+                <p class="text-muted mb-0">Official record for {{ user.username }}</p>
+            </div>
+            <button onclick="window.print()" class="btn btn-outline-secondary d-print-none">
+                <i class="bi bi-printer me-2"></i>Print Report
+            </button>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">Event Title</th>
+                            <th>Date</th>
+                            <th>Venue</th>
+                            <th>Status</th>
+                            <th class="pe-4">Registered On</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for reg in registrations %}
+                        <tr>
+                            <td class="ps-4 fw-bold text-primary">{{ reg.event.title }}</td>
+                            <td>{{ reg.event.date }}</td>
+                            <td>{{ reg.event.venue }}</td>
+                            <td>
+                                <span class="badge rounded-pill {% if reg.status == 'Attended' %}bg-success{% elif reg.status == 'Absent' %}bg-danger{% else %}bg-info text-dark{% endif %}">
+                                    {{ reg.status }}
+                                </span>
+                            </td>
+                            <td class="pe-4 text-muted small">{{ reg.reg_date|date:"M d, Y" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-muted">No activity found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

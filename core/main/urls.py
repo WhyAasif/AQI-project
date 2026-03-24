@@ -10,4 +10,7 @@ urlpatterns = [
     path('join/<int:event_id>/', views.join_event, name='join_event'),
     path('my-events/', views.my_events, name='my_events'),
     
+    # Reports
+    path('reports/my-activity/', views.volunteer_report, name='volunteer_report'),
+    path('reports/admin-summary/', views.admin_report, name='admin_report'),
 ]

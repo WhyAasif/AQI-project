@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Participation Summary{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="fw-bold mb-4">Event Participation Summary</h1>
+    
+    <div class="row g-4">
+        {% for event in events %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow-sm border-0 rounded-4 h-100">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold">{{ event.title }}</h5>
+                    <p class="text-muted small mb-3">{{ event.date }} @ {{ event.venue }}</p>
+                    
+                    <div class="d-flex justify-content-between mb-1 small">
+                        <span>Participants</span>
+                        <span>{{ event.current_volunteers }} / {{ event.capacity }}</span>
+                    </div>
+                    
+                    {% widthratio event.current_volunteers event.capacity 100 as progress %}
+                    <div class="progress mb-3" style="height: 10px;">
+                        <div class="progress-bar {% if progress|add:0 > 90 %}bg-danger{% elif progress|add:0 > 50 %}bg-warning{% else %}bg-success{% endif %}" 
+                             role="progressbar" 
+                             style="width: {{ progress }}%"></div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="badge bg-light text-dark border">{{ event.status }}</span>
+                        <a href="/admin/main/registration/?event__id__exact={{ event.id }}" target="_blank" class="btn btn-sm btn-link p-0 text-decoration-none">
+                            Manage Participants <i class="bi bi-box-arrow-up-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
