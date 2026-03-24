@@ -1,27 +1,102 @@
-<h2>All Events</h2>
+{% extends "base.html" %}
 
-{% for event in events %}
-    <div>
-        <h3>{{ event.title }}</h3>
-        <p>Date: {{ event.date }}</p>
-        <p>Time : {{ event.time }}</p>
-        <p>Venue: {{ event.venue }}</p>
-        <p>Capacity: {{ event.capacity }}</p>
-        <p>{{ event.description }}</p>
+{% block title %}Environmental Events - AQI India{% endblock %}
 
-
-        {% if event.id in user_registrations %}
-            <button disabled>Joined</button>
-        {% else %}
-            <a href="{% url 'join_event' event.id %}">
-                <button>Join Event</button>
+{% block content %}
+<div class="container py-5">
+    <!-- Header Section -->
+    <div class="row mb-5">
+        <div class="col-md-8">
+            <h1 class="fw-bold display-5 mb-2">Environmental Events</h1>
+            <p class="text-muted lead">Join local initiatives to combat pollution and improve air quality in your city.</p>
+        </div>
+        <div class="col-md-4 d-flex align-items-center justify-content-md-end">
+            <a href="{% url 'my_events' %}" class="btn btn-outline-primary px-4 rounded-pill">
+                <i class="bi bi-calendar-check me-2"></i>View My Events
             </a>
-        {% endif %}
-
-        <hr>
-
-        
+        </div>
     </div>
-    
-{% endfor %}
-<a href="{% url 'my_events' %}">My Events</a>
+
+    <!-- Events Grid -->
+    <div class="row g-4">
+        {% for event in events %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden transition-all">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <span class="badge {% if event.status == 'Upcoming' %}bg-success-subtle text-success{% else %}bg-secondary-subtle text-secondary{% endif %} rounded-pill px-3 py-2">
+                            {{ event.status }}
+                        </span>
+                        <small class="text-muted fw-medium">
+                            <i class="bi bi-people me-1"></i>Capacity: {{ event.capacity }}
+                        </small>
+                    </div>
+
+                    <h4 class="card-title fw-bold mb-3">{{ event.title }}</h4>
+                    
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center mb-2 small text-secondary">
+                            <i class="bi bi-calendar-event me-2 text-primary"></i>
+                            <span>{{ event.date }}</span>
+                            <span class="mx-2">|</span>
+                            <i class="bi bi-clock me-2 text-primary"></i>
+                            <span>{{ event.time|default:"TBA" }}</span>
+                        </div>
+                        <div class="d-flex align-items-center small text-secondary">
+                            <i class="bi bi-geo-alt me-2 text-primary"></i>
+                            <span>{{ event.venue }}</span>
+                        </div>
+                    </div>
+
+                    <p class="card-text text-muted mb-4">
+                        {{ event.description|truncatewords:20 }}
+                    </p>
+                </div>
+                
+                <div class="card-footer bg-transparent border-0 p-4 pt-0">
+                    {% if event.id in user_registrations %}
+                        <button class="btn btn-light w-100 rounded-3 fw-bold border" disabled>
+                            <i class="bi bi-check2-circle me-2"></i>Already Joined
+                        </button>
+                    {% else %}
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'join_event' event.id %}" class="btn btn-primary w-100 rounded-3 fw-bold py-2 shadow-sm">
+                                Join Event <i class="bi bi-arrow-right-short ms-1"></i>
+                            </a>
+                        {% else %}
+                            <a href="{% url 'login' %}?next={% url 'events' %}" class="btn btn-outline-primary w-100 rounded-3 fw-bold py-2">
+                                Login to Join
+                            </a>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <div class="bg-light d-inline-block p-4 rounded-circle mb-4">
+                <i class="bi bi-calendar-x display-4 text-muted"></i>
+            </div>
+            <h3 class="fw-bold">No Events Found</h3>
+            <p class="text-muted">Stay tuned for upcoming environmental activities!</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    .transition-all {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .transition-all:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 1rem 3rem rgba(0,0,0,.1) !important;
+    }
+    .badge {
+        font-weight: 600;
+        letter-spacing: 0.02em;
+    }
+    .bg-success-subtle { background-color: #d1e7dd; }
+    .text-success { color: #0f5132 !important; }
+</style>
+{% endblock %}

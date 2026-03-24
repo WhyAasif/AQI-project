@@ -1,15 +1,150 @@
-<h2>Register</h2>
+{% extends "base.html" %}
 
-<form method="POST">
-    {% csrf_token %}
-    
-    {{ form.as_p }}
+{% block title %}Join AQI India - Registration{% endblock %}
 
-    <button type="submit">Register</button>
-</form>
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+            <div class="card shadow-lg border-0 rounded-4 overflow-hidden mt-2">
+                <div class="row g-0">
+                    <!-- Right Side: Form (Standard layout but more compact) -->
+                    <div class="col-lg-7 border-end">
+                        <div class="card-body p-4 p-md-5">
+                            <div class="mb-4">
+                                <h3 class="fw-bold mb-1">Create Profile</h3>
+                                <p class="text-muted small">Join our community of environmental guardians.</p>
+                            </div>
+                            
+                            <form method="POST" novalidate>
+                                {% csrf_token %}
+                                
+                                {% if form.non_field_errors %}
+                                    {% for error in form.non_field_errors %}
+                                        <div class="alert alert-danger border-0 rounded-3 small py-2 mb-3 shadow-sm">
+                                            <i class="bi bi-exclamation-circle-fill me-2"></i> {{ error }}
+                                        </div>
+                                    {% endfor %}
+                                {% endif %}
 
-{% if form.errors %}
-    <div style="color:red;">
-        {{ form.errors }}
+                                {% for field in form %}
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold text-uppercase tracking-wider text-secondary mb-1">
+                                            {{ field.label }}
+                                        </label>
+                                        {{ field }}
+                                        {% if field.errors %}
+                                            {% for error in field.errors %}
+                                                <div class="text-danger x-small mt-1 ps-1 fw-medium" style="font-size: 0.8rem;">
+                                                    <i class="bi bi-x-circle-fill me-1"></i> {{ error }}
+                                                </div>
+                                            {% endfor %}
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+
+                                <div class="d-grid gap-2 mt-4">
+                                    <button type="submit" class="btn btn-primary btn-lg py-2 fw-bold rounded-3 shadow-sm transition-all">
+                                        Register <i class="bi bi-arrow-right ms-2"></i>
+                                    </button>
+                                </div>
+                            </form>
+
+                            <div class="text-center mt-4 pt-3 border-top">
+                                <p class="text-muted small mb-0">Already a member? <a href="{% url 'login' %}" class="fw-bold text-decoration-none ms-1">Sign in</a></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Left Side: Horizontal Benefits (Desktop only, or stacked neatly on mobile) -->
+                    <div class="col-lg-5 bg-light d-flex align-items-center">
+                        <div class="card-body p-4 p-md-5 text-center">
+                            <div class="mb-4">
+                                <i class="bi bi-person-plus-fill display-4 text-primary"></i>
+                                <h4 class="fw-bold mt-3">Why Join?</h4>
+                            </div>
+                            
+                            <div class="row g-3 text-start">
+                                <div class="col-12 d-flex align-items-center bg-white p-3 rounded-3 shadow-sm mb-2">
+                                    <i class="bi bi-geo-alt-fill text-primary fs-4 me-3"></i>
+                                    <div>
+                                        <h6 class="mb-0 fw-bold">Track Locally</h6>
+                                        <p class="small text-muted mb-0">Live neighborhood updates.</p>
+                                    </div>
+                                </div>
+                                <div class="col-12 d-flex align-items-center bg-white p-3 rounded-3 shadow-sm mb-2">
+                                    <i class="bi bi-people-fill text-success fs-4 me-3"></i>
+                                    <div>
+                                        <h6 class="mb-0 fw-bold">Join Events</h6>
+                                        <p class="small text-muted mb-0">Local awareness drives.</p>
+                                    </div>
+                                </div>
+                                <div class="col-12 d-flex align-items-center bg-white p-3 rounded-3 shadow-sm">
+                                    <i class="bi bi-shield-check text-info fs-4 me-3"></i>
+                                    <div>
+                                        <h6 class="mb-0 fw-bold">History</h6>
+                                        <p class="small text-muted mb-0">Analyze AQI trends.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <p class="text-muted x-small mt-4 mb-0">
+                                Your data is protected and used only for coordination.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-{% endif %}
+</div>
+
+<style>
+    /* Compact styling for the registration card */
+    .fw-extrabold { font-weight: 800; }
+    .tracking-wider { letter-spacing: 0.05em; }
+    
+    .transition-all { transition: all 0.3s ease; }
+    .transition-all:hover { transform: translateY(-1px); }
+
+    input[type="text"], 
+    input[type="password"], 
+    input[type="email"], 
+    input[type="number"], 
+    select, 
+    textarea {
+        display: block;
+        width: 100%;
+        padding: 0.6rem 0.9rem; /* Reduced padding from previous version */
+        font-size: 0.95rem;
+        font-weight: 400;
+        line-height: 1.5;
+        color: #212529;
+        background-color: #fdfdfd;
+        background-clip: padding-box;
+        border: 1px solid #e0e0e0;
+        border-radius: 0.5rem;
+        transition: border-color .15s ease-in-out;
+    }
+
+    input:focus {
+        border-color: #0d6efd;
+        outline: 0;
+        background-color: #fff;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, .05);
+    }
+
+    .form-text ul {
+        list-style: none;
+        padding-left: 0;
+        margin-top: 5px;
+        font-size: 0.75rem;
+    }
+    
+    .x-small { font-size: 0.75rem; }
+
+    @media (max-width: 991.98px) {
+        .border-end { border-end: none !important; border-bottom: 1px solid #dee2e6 !important; }
+    }
+</style>
+{% endblock %}
