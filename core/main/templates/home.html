@@ -1,31 +1,131 @@
-<h1>🌍 Live Air Quality Index</h1>
+{% extends "base.html" %}
 
-{% if aqi %}
-    <div class="card">
+{% block title %}Live AQI - {{ city|default:"India" }}{% endblock %}
+{% block extra_css %}<style>
+    /* Force 4:3 Aspect Ratio for Map */
+    .map-container {
+        position: relative;
+        width: 30%;
+        aspect-ratio: 3 / 4; /* This creates the 4:3 box */
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    #map { height: 100%; width: 100%; }
 
-        <h2>{{ city }}</h2>
+    /* Dashboard Styling */
+    .info-card { border-radius: 12px; height: 100%; }
+    .stat-box { 
+        padding: 10px; 
+        border-bottom: 1px solid #eee; 
+        display: flex; 
+        justify-content: space-between; 
+    }
+    .pollutant-name { font-weight: bold; color: #555; }
+    .pollutant-value { font-family: 'Courier New', Courier, monospace; font-weight: bold; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="row g-3">
+        
+        <div class="col-lg-8">
+            <div class="map-container">
+                <div id="map"></div>
+            </div>
+        </div>
 
-        {% if aqi <= 50 %}
-            <div class="aqi-box good">{{ aqi }}</div>
-            <p>Good</p>
-        {% elif aqi <= 100 %}
-            <div class="aqi-box moderate">{{ aqi }}</div>
-            <p>Moderate</p>
-        {% elif aqi <= 200 %}
-            <div class="aqi-box unhealthy"><strong>AQI : {{ aqi }}</strong></div>
-            <p>Unhealthy</p>
-        {% else %}
-            <div class="aqi-box hazardous">{{ aqi }}</div>
-            <p>Hazardous</p>
-        {% endif %}
+        <div class="col-lg-4">
+            <div class="card info-card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Station: {{ city|default:"India Detail" }}</h5>
+                </div>
+                <div class="card-body p-0" style="max-height: 600px; overflow-y: auto;">
+                    
+                    <div class="text-center py-4 bg-light border-bottom">
+                        <h6 class="text-muted mb-1">Current AQI</h6>
+                        <h1 class="display-3 fw-bold text-danger">{{ aqi|default:"228" }}</h1>
+                        <span class="badge bg-danger px-3 py-2">Very Unhealthy</span>
+                    </div>
 
-        <p><strong>PM2.5:</strong> {{ pm25 }}</p>
-        <p><strong>PM10:</strong> {{ pm10 }}</p>
+                    <div class="px-3 py-2">
+                        <small class="text-uppercase text-muted fw-bold">Pollutants</small>
+                        <div class="stat-box">
+                            <span class="pollutant-name">PM2.5</span>
+                            <span class="pollutant-value text-danger">{{ pm25|default:"228" }}</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="pollutant-name">PM10</span>
+                            <span class="pollutant-value text-warning">{{ pm10|default:"177" }}</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="pollutant-name">Ozone (O3)</span>
+                            <span class="pollutant-value text-success">{{ o3|default:"2" }}</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="pollutant-name">Nitrogen (NO2)</span>
+                            <span class="pollutant-value text-success">{{ no2|default:"18" }}</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="pollutant-name">Sulfur (SO2)</span>
+                            <span class="pollutant-value text-success">{{ so2|default:"4" }}</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="pollutant-name">Carbon (CO)</span>
+                            <span class="pollutant-value text-success">{{ co|default:"8" }}</span>
+                        </div>
+
+                        <small class="text-uppercase text-muted fw-bold d-block mt-3">Weather / Environment</small>
+                        <div class="stat-box">
+                            <span class="pollutant-name">Humidity (R.H.)</span>
+                            <span>{{ humidity|default:"78" }}%</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="pollutant-name">Temperature</span>
+                            <span>{{ temp|default:"21" }}°C</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="pollutant-name">Wind Speed</span>
+                            <span>{{ wind|default:"1" }} km/h</span>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="card-footer bg-white small text-center text-muted">
+                    Last Sync: Tuesday, 24 March 2026
+                </div>
+            </div>
+        </div>
 
     </div>
-{% else %}
-    <p>No AQI data available</p>
-{% endif %}
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+    // Initialize map centered on India or City coordinates
+    // We use default coordinates if city data isn't available
+    const lat = {{ lat|default:20.5937 }};
+    const lng = {{ lon|default:78.9629 }};
+    const zoomLevel = {% if city %}11{% else %}5{% endif %};
 
+    const map = L.map('map').setView([lat, lng], zoomLevel);
 
+    // 1. OpenStreetMap Base Layer
+   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Esri'
+}).addTo(map);
+
+    // 2. WAQI Air Quality Tiles Overlay
+    // Replace 'YOUR_TOKEN' with your actual token
+    const waqiToken = "020f43646c18e56c461bb0370599675f5ee742e6"; 
+    L.tileLayer(`https://tiles.waqi.info/tiles/usepa-aqi/{z}/{x}/{y}.png?token=${waqiToken}`).addTo(map);
+
+    {% if city %}
+    // Add a marker for the current city
+    L.marker([lat, lng]).addTo(map)
+        .bindPopup("<b>{{ city }}</b><br>AQI: {{ aqi }}")
+        .openPopup();
+    {% endif %}
+</script>
+{% endblock %}
 

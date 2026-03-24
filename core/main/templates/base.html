@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}India AQI Live{% endblock %}</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      ...
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+    <style>
+      :root {
+        --aqi-blue: #0d6efd;
+      }
+      body {
+        background-color: #f4f7f9;
+        font-family:
+          "Inter",
+          system-ui,
+          -apple-system,
+          sans-serif;
+      }
+      .navbar {
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      }
+      .navbar-brand {
+        font-weight: 800;
+        letter-spacing: -0.5px;
+      }
+    </style>
+    {% block extra_css %}{% endblock %}
+  </head>
+  <body>
+    <nav class="navbar bg-body-tertiary fixed-top">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#">Offcanvas navbar</a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="offcanvas"
+          data-bs-target="#offcanvasNavbar"
+          aria-controls="offcanvasNavbar"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div
+          class="offcanvas offcanvas-end"
+          tabindex="-1"
+          id="offcanvasNavbar"
+          aria-labelledby="offcanvasNavbarLabel"
+        >
+          <div class="offcanvas-body">
+            <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
+              <li class="nav-item mb-2">
+                <a class="nav-link active fw-bold" href="{% url 'home' %}">
+                  <i class="bi bi-house-door-fill me-2"></i> Home
+                </a>
+              </li>
+
+              <hr class="text-muted" />
+
+              {% if user.is_authenticated %}
+              <li class="nav-item">
+                <a class="nav-link fw-bold text-primary" href="/profile/">
+                  <i class="bi bi-person-circle me-2"></i> My Profile
+                </a>
+              </li>
+              <li class="nav-item small ms-4">
+                <a class="nav-link text-muted" href="/my-events/">
+                  <i class="bi bi-calendar-check me-2"></i> My Participated
+                  Events
+                </a>
+              </li>
+              <li class="nav-item mt-2">
+                <form
+                  action="{% url 'logout' %}"
+                  method="post"
+                  class="d-inline"
+                >
+                  {% csrf_token %}
+                  <button
+                    type="submit"
+                    class="btn btn-link nav-link text-danger border-0"
+                  >
+                    <i class="bi bi-box-arrow-right me-2"></i> Logout
+                  </button>
+                </form>
+              </li>
+              {% else %}
+              <li class="nav-item">
+                <a
+                  class="nav-link fw-bold text-primary"
+                  href="{% url 'login' %}"
+                >
+                  <i class="bi bi-shield-lock-fill me-2"></i> Login / Sign Up
+                </a>
+              </li>
+              {% endif %}
+
+              <hr class="text-muted" />
+
+              <li class="nav-item">
+                <a class="nav-link" href="/events/">
+                  <i class="bi bi-megaphone-fill me-2"></i> Environmental Events
+                </a>
+              </li>
+            </ul>
+
+            <form class="d-flex mt-5" role="search" action="/" method="GET">
+              <input
+                class="form-control me-2 bg-light border-0"
+                type="search"
+                name="city"
+                placeholder="Search City/Station"
+              />
+              <button class="btn btn-primary" type="submit">Go</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </nav>
+    {% block content %} {% endblock %}
+    <footer class="text-center py-4 text-muted">
+      <p>© 2026 India Air Quality Project | Powered by WAQI API</p>
+    </footer>
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+      ...
+    ></script>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    {% block extra_js %} {% endblock %}
+  </body>
+</html>

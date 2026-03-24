@@ -135,5 +135,7 @@ def home_view(request):
         context['city'] = data['data']['city']['name']
         context['pm25'] = data['data']['iaqi'].get('pm25', {}).get('v', 'N/A')
         context['pm10'] = data['data']['iaqi'].get('pm10', {}).get('v', 'N/A')
+        context['lat']= data['data']['city']['geo'][0]
+        context['lon']= data['data']['city']['geo'][1]
 
     return render(request, 'home.html', context)
