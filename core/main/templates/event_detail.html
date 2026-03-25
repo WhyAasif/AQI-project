@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}{{ event.title }} - AQI India{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    
+    <!-- Breadcrumbs -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'events' %}" class="text-decoration-none">Community Events</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ event.title }}</li>
+        </ol>
+    </nav>
+
+    <div class="row g-5">
+        <!-- Left Side: Description & Info -->
+        <div class="col-lg-8">
+            <div class="mb-4">
+                <span class="badge {% if event.status == 'Upcoming' %}bg-success{% else %}bg-secondary{% endif %} rounded-pill px-3 py-2 mb-3 shadow-sm">
+                    {{ event.status }} Event
+                </span>
+                <h1 class="display-4 fw-bold text-dark mb-3">{{ event.title }}</h1>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4 mb-5">
+                <div class="card-body p-5">
+                    <h4 class="fw-bold mb-4 border-bottom pb-2">About The Event</h4>
+                    <p class="lead text-secondary" style="line-height: 1.8;">
+                        {{ event.description|linebreaks }}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side: Action Card & Stats -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-lg rounded-4 sticky-top" style="top: 100px;">
+                <div class="card-body p-4">
+                    
+                    <h5 class="fw-bold mb-4">Event Details</h5>
+                    
+                    <ul class="list-unstyled mb-4">
+                        <li class="d-flex align-items-center mb-3">
+                            <div class="bg-light text-primary rounded d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                <i class="bi bi-calendar-event fs-5"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">Date</small>
+                                <span class="fw-medium">{{ event.date|date:"F j, Y" }}</span>
+                            </div>
+                        </li>
+                        <li class="d-flex align-items-center mb-3">
+                            <div class="bg-light text-primary rounded d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                <i class="bi bi-clock fs-5"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">Time</small>
+                                <span class="fw-medium">{{ event.time|default:"TBA" }} - {{ event.end_time|default:"TBA" }}</span>
+                            </div>
+                        </li>
+                        <li class="d-flex align-items-center mb-4">
+                            <div class="bg-light text-primary rounded d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                <i class="bi bi-geo-alt fs-5"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">Location</small>
+                                <span class="fw-medium">{{ event.venue }}</span>
+                            </div>
+                        </li>
+                    </ul>
+
+                    <!-- Capacity Progress Bar -->
+                    <div class="bg-light rounded-4 p-3 mb-4">
+                        <div class="d-flex justify-content-between align-items-end mb-2">
+                            <span class="fw-bold text-dark">Participation</span>
+                            <span class="text-muted small"><strong>{{ current_count }}</strong> / {{ event.capacity }}</span>
+                        </div>
+                        <div class="progress rounded-pill mb-2" style="height: 10px;">
+                            <div class="progress-bar {% if progress_percentage > 90 %}bg-danger{% elif progress_percentage > 70 %}bg-warning{% else %}bg-primary{% endif %}" 
+                                 role="progressbar" 
+                                 style="width: {{ progress_percentage }}%"></div>
+                        </div>
+                        
+                        <div class="text-center mt-2">
+                            {% if remaining_spots == 0 %}
+                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill"><i class="bi bi-x-circle me-1"></i> Event is Full</span>
+                            {% else %}
+                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill"><i class="bi bi-person-check me-1"></i> {{ remaining_spots }} spots remaining</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    {% if is_registered %}
+                        <button class="btn btn-success w-100 py-3 rounded-3 fw-bold mb-2 disabled">
+                            <i class="bi bi-check-circle-fill me-2"></i> You Are Registered
+                        </button>
+                        <a href="{% url 'my_events' %}" class="btn btn-outline-secondary w-100 rounded-3">Go to Dashboard</a>
+                    {% else %}
+                        {% if user.is_authenticated %}
+                            {% if remaining_spots > 0 %}
+                                <a href="{% url 'join_event' event.id %}" class="btn btn-primary w-100 py-3 rounded-3 fw-bold shadow-sm">
+                                    Register Now <i class="bi bi-arrow-right-short fs-5 align-middle"></i>
+                                </a>
+                            {% else %}
+                                <button class="btn btn-secondary w-100 py-3 rounded-3 fw-bold disabled">Registration Closed</button>
+                            {% endif %}
+                        {% else %}
+                            <a href="{% url 'login' %}?next={% url 'event_detail' event.id %}" class="btn btn-outline-primary w-100 py-3 rounded-3 fw-bold">
+                                Login to Register
+                            </a>
+                        {% endif %}
+                    {% endif %}
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

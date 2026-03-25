@@ -13,10 +13,11 @@ class User(AbstractUser):
 class Event(models.Model):
     title = models.CharField(max_length=150)
     date = models.DateField()
-    time = models.TimeField(null=True, blank=True)  # Added Time
+    time = models.TimeField(null=True, blank=True)  
+    end_time = models.TimeField(null=True, blank=True) 
     venue = models.CharField(max_length=200)
     description = models.TextField()
-    capacity = models.PositiveIntegerField(default=50) # Added Capacity for report generation
+    capacity = models.PositiveIntegerField(default=50) 
     status = models.CharField(max_length=20, default='Upcoming')
 
     def __str__(self):

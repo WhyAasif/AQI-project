@@ -14,6 +14,9 @@
       body { background-color: #f4f7f9; font-family: "Inter", system-ui, -apple-system, sans-serif; padding-top: 70px; }
       .navbar { box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05); }
       .navbar-brand { font-weight: 800; letter-spacing: -0.5px; }
+      .offcanvas-body .nav-link { border-radius: 8px; margin-bottom: 2px; transition: background-color 0.2s; }
+      .offcanvas-body .nav-link:hover { background-color: #f8f9fa; }
+      .offcanvas-body .nav-link.active { background-color: #e9ecef; }
     </style>
     {% block extra_css %}{% endblock %}
   </head>
@@ -23,72 +26,109 @@
         <a class="navbar-brand text-primary" href="{% url 'home' %}">
             <i class="bi bi-wind me-2"></i>AQI India
         </a>
-        <button class="navbar-toggler border-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar">
+        <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar">
           <span class="navbar-toggler-icon"></span>
         </button>
+        
         <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasNavbar">
-          <div class="offcanvas-header border-bottom">
-            <h5 class="offcanvas-title fw-bold" id="offcanvasNavbarLabel">Menu</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+          <div class="offcanvas-header border-bottom bg-light">
+            <h5 class="offcanvas-title fw-bold text-primary" id="offcanvasNavbarLabel">
+              <i class="bi bi-list me-2"></i>Menu
+            </h5>
+            <button type="button" class="btn-close shadow-none" data-bs-dismiss="offcanvas"></button>
           </div>
-          <div class="offcanvas-body">
-            <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
-              <li class="nav-item mb-2">
-                <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active fw-bold text-primary{% endif %}" href="{% url 'home' %}">
-                  <i class="bi bi-house-door-fill me-2"></i> Home
-                </a>
-              </li>
-
+          <div class="offcanvas-body d-flex flex-column">
+            
+            <ul class="navbar-nav flex-grow-1">
+              
+              <!-- 1. Common Links (Visible to Everyone) -->
               <li class="nav-item">
-                <a class="nav-link {% if request.resolver_match.url_name == 'events' %}active fw-bold text-primary{% endif %}" href="{% url 'events' %}">
-                  <i class="bi bi-megaphone-fill me-2"></i> Environmental Events
+                <a class="nav-link px-3 {% if request.resolver_match.url_name == 'home' %}active fw-bold text-primary{% endif %}" href="{% url 'home' %}">
+                  <i class="bi bi-house-door me-2"></i> Home
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link px-3 {% if request.resolver_match.url_name == 'events' %}active fw-bold text-primary{% endif %}" href="{% url 'events' %}">
+                  <i class="bi bi-globe-americas me-2"></i> Community Events
                 </a>
               </li>
 
-              <hr class="text-muted" />
+              <hr class="text-muted my-3 opacity-25" />
 
+              <!-- 2. Role-Based Links -->
               {% if user.is_authenticated %}
+                
+                <!-- Volunteer Dashboard / My Activity -->
                 <li class="nav-item">
-                    <span class="nav-link text-muted small">Logged in as: <strong>{{ user.username }}</strong></span>
+                    <a class="nav-link px-3 {% if request.resolver_match.url_name == 'my_events' %}active fw-bold text-primary{% endif %}" href="{% url 'my_events' %}">
+                      <i class="bi bi-person-lines-fill me-2"></i> My Activity Dashboard
+                    </a>
                 </li>
+
+                <!-- Admin Specific Links -->
                 {% if user.role == 'admin' or user.is_staff %}
-                <li class="nav-item">
-                    <a class="nav-link fw-bold text-success" href="/admin/" target="_blank">
-                      <i class="bi bi-speedometer2 me-2"></i> Admin Dashboard
-                    </a>
-                </li>
+                    <li class="nav-item mt-3 mb-1 px-3">
+                        <small class="text-uppercase text-muted fw-bold" style="letter-spacing: 1px; font-size: 0.75rem;">Admin Controls</small>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link px-3 {% if request.resolver_match.url_name == 'admin_report' %}active fw-bold text-primary{% endif %}" href="{% url 'admin_report' %}">
+                            <i class="bi bi-pie-chart-fill me-2"></i> Participation Report
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link px-3 text-success" href="/admin/" target="_blank">
+                          <i class="bi bi-speedometer2 me-2"></i> Django Admin Panel <i class="bi bi-box-arrow-up-right ms-1" style="font-size: 0.7rem;"></i>
+                        </a>
+                    </li>
                 {% endif %}
-                <li class="nav-item">
-                    <a class="nav-link fw-bold" href="{% url 'my_events' %}">
-                      <i class="bi bi-calendar-check me-2"></i> My Events
-                    </a>
-                </li>
-                <li class="nav-item mt-3">
-                    <form action="{% url 'logout' %}" method="post">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-danger w-100">
-                            <i class="bi bi-box-arrow-right me-2"></i> Logout
-                        </button>
-                    </form>
-                </li>
+
               {% else %}
-                <li class="nav-item">
-                    <a class="btn btn-primary w-100 mb-2" href="{% url 'login' %}">
+                
+                <!-- Guest Links (Login / Sign Up) -->
+                <li class="nav-item px-2 mb-2">
+                    <a class="btn btn-primary w-100 rounded-pill shadow-sm py-2" href="{% url 'login' %}">
                       <i class="bi bi-shield-lock-fill me-2"></i> Login
                     </a>
                 </li>
-                <li class="nav-item text-center">
-                    <a class="nav-link small" href="{% url 'register' %}">Don't have an account? Register</a>
+                <li class="nav-item px-2">
+                    <a class="btn btn-outline-primary w-100 rounded-pill py-2" href="{% url 'register' %}">
+                      <i class="bi bi-person-plus-fill me-2"></i> Sign Up
+                    </a>
                 </li>
+
               {% endif %}
+
+              <hr class="text-muted my-3 opacity-25" />
+
+              <!-- 3. Footer Links -->
+              <li class="nav-item">
+                <a class="nav-link px-3" href="#">
+                    <i class="bi bi-info-circle me-2"></i> About / Contact
+                </a>
+              </li>
             </ul>
 
-            <form class="mt-auto pt-5" role="search" action="{% url 'home' %}" method="GET">
-              <div class="input-group">
-                <input class="form-control bg-light border-0" type="search" name="city" placeholder="Search City/Station">
-                <button class="btn btn-primary" type="submit">Go</button>
-              </div>
-            </form>
+            <!-- Bottom User Status & Logout -->
+            {% if user.is_authenticated %}
+            <div class="mt-auto pt-4 border-top">
+                <div class="d-flex align-items-center mb-3 px-2">
+                    <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                        <i class="bi bi-person-fill fs-5"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-0 fw-bold">{{ user.username }}</h6>
+                        <small class="text-muted text-capitalize">{{ user.role }}</small>
+                    </div>
+                </div>
+                <form action="{% url 'logout' %}" method="post" class="px-2">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger w-100 rounded-pill shadow-sm">
+                        <i class="bi bi-box-arrow-right me-2"></i> Logout
+                    </button>
+                </form>
+            </div>
+            {% endif %}
+
           </div>
         </div>
       </div>

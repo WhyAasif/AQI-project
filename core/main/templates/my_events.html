@@ -1,14 +1,13 @@
 {% extends "base.html" %}
 
-{% block title %}My Registered Events - AQI India{% endblock %}
+{% block title %}My Activity - AQI India{% endblock %}
 
 {% block content %}
 <div class="container py-5">
-    <!-- Header Section -->
     <div class="row mb-5">
         <div class="col-md-8">
-            <h1 class="fw-bold display-5 mb-2">My Events</h1>
-            <p class="text-muted lead">Manage the environmental initiatives you've committed to attend.</p>
+            <h1 class="fw-bold display-5 mb-2">My Activity</h1>
+            <p class="text-muted lead">Manage your upcoming initiatives and view your official volunteer log.</p>
         </div>
         <div class="col-md-4 d-flex align-items-center justify-content-md-end">
             <a href="{% url 'events' %}" class="btn btn-primary px-4 rounded-pill shadow-sm">
@@ -17,65 +16,106 @@
         </div>
     </div>
 
-    <!-- Registrations Grid -->
-    <div class="row g-4">
+    <h3 class="fw-bold border-bottom pb-2 mb-4">Upcoming Commitments</h3>
+    <div class="row g-4 mb-5">
         {% for reg in registrations %}
-        <div class="col-md-6 col-lg-4">
-            <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden">
-                <div class="card-body p-4">
-                    <div class="d-flex justify-content-between align-items-start mb-3">
-                        <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2">
-                            <i class="bi bi-check-circle-fill me-1"></i> Registered
-                        </span>
-                        <small class="text-muted small">
-                            Joined on {{ reg.registration_date|date:"M d, Y" }}
-                        </small>
-                    </div>
-
-                    <h4 class="card-title fw-bold mb-3">{{ reg.event.title }}</h4>
-                    
-                    <div class="mb-3">
-                        <div class="d-flex align-items-center mb-2 small text-secondary">
-                            <i class="bi bi-calendar-event me-2 text-primary"></i>
-                            <span>{{ reg.event.date }}</span>
-                            <span class="mx-2">|</span>
-                            <i class="bi bi-clock me-2 text-primary"></i>
-                            <span>{{ reg.event.time|default:"TBA" }}</span>
+            {% if reg.status == 'Registered' %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2">
+                                <i class="bi bi-check-circle-fill me-1"></i> {{ reg.status }}
+                            </span>
+                            <small class="text-muted small">
+                                Joined on {{ reg.reg_date|date:"M d, Y" }}
+                            </small>
                         </div>
-                        <div class="d-flex align-items-center small text-secondary">
-                            <i class="bi bi-geo-alt me-2 text-primary"></i>
-                            <span>{{ reg.event.venue }}</span>
-                        </div>
-                    </div>
 
-                    <p class="card-text text-muted small mb-0">
-                        {{ reg.event.description|truncatewords:15 }}
-                    </p>
-                </div>
-                
-                <div class="card-footer bg-light border-0 p-3 d-flex justify-content-between align-items-center">
-                    <span class="text-muted x-small">Status: <strong class="text-dark">{{ reg.status|default:"Confirmed" }}</strong></span>
-                    <!-- You could add a 'Cancel Registration' button here if you have the view logic -->
+                        <h4 class="card-title fw-bold mb-3">{{ reg.event.title }}</h4>
+                        
+                        <div class="mb-3">
+                            <div class="d-flex align-items-center mb-2 small text-secondary">
+                                <i class="bi bi-calendar-event me-2 text-primary"></i>
+                                <span>{{ reg.event.date }}</span>
+                                <span class="mx-2">|</span>
+                                <i class="bi bi-clock me-2 text-primary"></i>
+                                <span>{{ reg.event.time|default:"TBA" }} - {{ reg.event.end_time|default:"TBA" }}</span>
+                            </div>
+                            <div class="d-flex align-items-center small text-secondary">
+                                <i class="bi bi-geo-alt me-2 text-primary"></i>
+                                <span>{{ reg.event.venue }}</span>
+                            </div>
+                        </div>
+
+                        <p class="card-text text-muted small mb-0">
+                            {{ reg.event.description|truncatewords:15 }}
+                        </p>
+                    </div>
                 </div>
             </div>
-        </div>
+            {% endif %}
         {% empty %}
-        <div class="col-12 text-center py-5">
-            <div class="bg-light d-inline-block p-4 rounded-circle mb-4">
-                <i class="bi bi-journal-x display-4 text-muted"></i>
+            <div class="col-12 text-center py-4">
+                <p class="text-muted">You have no upcoming commitments.</p>
             </div>
-            <h3 class="fw-bold">No Registrations Yet</h3>
-            <p class="text-muted">You haven't joined any environmental events yet.</p>
-            <a href="{% url 'events' %}" class="btn btn-primary mt-3 px-4 rounded-pill">
-                Explore Events
-            </a>
-        </div>
         {% endfor %}
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-4 mt-5">
+        <h3 class="fw-bold mb-0">Official Activity Log</h3>
+        <button onclick="window.print()" class="btn btn-outline-secondary btn-sm d-print-none">
+            <i class="bi bi-printer me-2"></i>Print Report
+        </button>
+    </div>
+    
+    <div class="card shadow-sm border-0 rounded-4 mb-5">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">Event Title</th>
+                            <th>Date</th>
+                            <th>Venue</th>
+                            <th>Status</th>
+                            <th class="pe-4">Registered On</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for reg in registrations %}
+                        <tr>
+                            <td class="ps-4 fw-bold text-primary">{{ reg.event.title }}</td>
+                            <td>{{ reg.event.date }}</td>
+                            <td>{{ reg.event.venue }}</td>
+                            <td>
+                                <span class="badge rounded-pill {% if reg.status == 'Attended' %}bg-success{% elif reg.status == 'Absent' %}bg-danger{% else %}bg-info text-dark{% endif %}">
+                                    {{ reg.status }}
+                                </span>
+                            </td>
+                            <td class="pe-4 text-muted small">{{ reg.reg_date|date:"M d, Y" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-muted">No activity found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
 
 <style>
     .x-small { font-size: 0.75rem; }
     .badge { font-weight: 600; }
+    
+    /* Hide the upcoming cards and extra buttons when printing the report */
+    @media print {
+        .d-print-none, .row.g-4.mb-5, h3.border-bottom {
+            display: none !important;
+        }
+    }
 </style>
 {% endblock %}
