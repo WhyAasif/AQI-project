@@ -21,4 +21,8 @@ urlpatterns = [
     path('reports/admin-summary/', views.admin_report, name='admin_report'),
     path('profile/', views.profile_view, name='profile'),
     path('profile/report/', views.download_event_report, name='download_report'),
+    path('about/', views.about_view, name='about'),
+    path('admin-panel/event/create/', views.create_event, name='create_event'),
+    path('admin-panel/event/<int:event_id>/edit/', views.edit_event, name='edit_event'),
+    path('admin-panel/event/<int:event_id>/delete/', views.delete_event, name='delete_event'),
 ]

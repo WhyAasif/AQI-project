@@ -9,6 +9,7 @@ import requests
 from datetime import date, timedelta, datetime
 import csv
 from django.http import HttpResponse
+from .forms import EventForm
 
 
 # Helper to check if user is admin
@@ -245,3 +246,37 @@ def download_event_report(request):
         writer.writerow([reg.event.title, reg.event.date, reg.event.venue, reg.status, hours])
 
     return response
+
+def about_view(request):
+    return render(request, 'about.html')
+
+@user_passes_test(is_admin)
+def create_event(request):
+    if request.method == 'POST':
+        form = EventForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('admin_report')
+    else:
+        form = EventForm()
+    return render(request, 'event_form.html', {'form': form, 'action': 'Create'})
+
+@user_passes_test(is_admin)
+def edit_event(request, event_id):
+    event = get_object_or_404(Event, id=event_id)
+    if request.method == 'POST':
+        form = EventForm(request.POST, instance=event)
+        if form.is_valid():
+            form.save()
+            return redirect('admin_report')
+    else:
+        form = EventForm(instance=event)
+    return render(request, 'event_form.html', {'form': form, 'action': 'Edit', 'event': event})
+
+@user_passes_test(is_admin)
+def delete_event(request, event_id):
+    event = get_object_or_404(Event, id=event_id)
+    if request.method == 'POST':
+        event.delete()
+        return redirect('admin_report')
+    return render(request, 'event_confirm_delete.html', {'event': event})

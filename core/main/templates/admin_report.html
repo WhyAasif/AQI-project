@@ -1,41 +1,126 @@
 {% extends "base.html" %}
 
-{% block title %}Admin Participation Summary{% endblock %}
+{% block title %}Admin Participation Summary - AQI India{% endblock %}
 
 {% block content %}
 <div class="container py-5">
-    <h1 class="fw-bold mb-4">Event Participation Summary</h1>
     
-    <div class="row g-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-5 border-bottom pb-4">
+        <div>
+            <h1 class="fw-bold mb-1">Participation Summary</h1>
+            <p class="text-muted mb-0">Overview of community engagement and capacity metrics.</p>
+        </div>
+        <div class="mt-3 mt-md-0 d-flex gap-2 d-print-none">
+            <button onclick="window.print()" class="btn btn-primary rounded-pill px-4 shadow-sm">
+                <i class="bi bi-printer me-2"></i> Print Report
+            </button>
+            <a href="{% url 'create_event' %}" class="btn btn-success rounded-pill px-4 shadow-sm">
+    <i class="bi bi-plus-circle me-2"></i> Create New Event
+</a>
+        </div>
+    </div>
+
+    <h4 class="fw-bold text-primary mb-4"><i class="bi bi-calendar-event me-2"></i>Active / Upcoming Events</h4>
+    <div class="row g-4 mb-5">
         {% for event in events %}
-        <div class="col-md-6 col-lg-4">
-            <div class="card shadow-sm border-0 rounded-4 h-100">
-                <div class="card-body p-4">
-                    <h5 class="fw-bold">{{ event.title }}</h5>
-                    <p class="text-muted small mb-3">{{ event.date }} @ {{ event.venue }}</p>
-                    
-                    <div class="d-flex justify-content-between mb-1 small">
-                        <span>Participants</span>
-                        <span>{{ event.current_volunteers }} / {{ event.capacity }}</span>
-                    </div>
-                    
-                    {% widthratio event.current_volunteers event.capacity 100 as progress %}
-                    <div class="progress mb-3" style="height: 10px;">
-                        <div class="progress-bar {% if progress|add:0 > 90 %}bg-danger{% elif progress|add:0 > 50 %}bg-warning{% else %}bg-success{% endif %}" 
-                             role="progressbar" 
-                             style="width: {{ progress }}%"></div>
-                    </div>
-                    
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="badge bg-light text-dark border">{{ event.status }}</span>
-                        <a href="/admin/main/registration/?event__id__exact={{ event.id }}" target="_blank" class="btn btn-sm btn-link p-0 text-decoration-none">
-                            Manage Participants <i class="bi bi-box-arrow-up-right ms-1"></i>
-                        </a>
+            {% if event.status == 'Upcoming' %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card shadow-sm border-0 rounded-4 h-100 border-top border-primary border-4">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold text-truncate" title="{{ event.title }}">{{ event.title }}</h5>
+                        <p class="text-muted small mb-4">
+                            <i class="bi bi-calendar3 me-1"></i> {{ event.date }} <br>
+                            <i class="bi bi-geo-alt me-1"></i> {{ event.venue }}
+                        </p>
+                        
+                        <div class="bg-body-tertiary rounded-3 p-3 mb-3">
+                            <div class="d-flex justify-content-between mb-2 small fw-bold">
+                                <span>Registered Volunteers</span>
+                                <span class="text-primary">{{ event.current_volunteers }} / {{ event.capacity }}</span>
+                            </div>
+                            
+                            {% widthratio event.current_volunteers event.capacity 100 as progress %}
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar {% if progress|add:0 > 90 %}bg-danger{% elif progress|add:0 > 50 %}bg-warning{% else %}bg-success{% endif %}" 
+                                     role="progressbar" 
+                                     style="width: {{ progress }}%"
+                                     aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                            <div class="text-end mt-1 small text-muted" style="font-size: 0.7rem;">{{ progress }}% Capacity</div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center mt-auto d-print-none">
+                            <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill">{{ event.status }}</span>
+                            <div class="d-flex justify-content-between align-items-center mt-auto d-print-none">
+    <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill">{{ event.status }}</span>
+    
+    <div class="btn-group">
+        <a href="{% url 'edit_event' event.id %}" class="btn btn-sm btn-outline-secondary" title="Edit Event">
+            <i class="bi bi-pencil"></i>
+        </a>
+        <a href="{% url 'delete_event' event.id %}" class="btn btn-sm btn-outline-danger" title="Delete Event">
+            <i class="bi bi-trash"></i>
+        </a>
+    </div>
+</div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+            {% endif %}
         {% endfor %}
     </div>
+
+    <h4 class="fw-bold text-secondary mb-4"><i class="bi bi-calendar-check me-2"></i>Past / Completed Events</h4>
+    <div class="row g-4 mb-4">
+        {% for event in events %}
+            {% if event.status == 'Completed' %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card shadow-sm border-0 rounded-4 h-100 bg-body-tertiary">
+                    <div class="card-body p-4 opacity-75">
+                        <h5 class="fw-bold text-truncate" title="{{ event.title }}">{{ event.title }}</h5>
+                        <p class="text-muted small mb-4">
+                            <i class="bi bi-calendar3 me-1"></i> {{ event.date }} <br>
+                            <i class="bi bi-geo-alt me-1"></i> {{ event.venue }}
+                        </p>
+                        
+                        <div class="d-flex justify-content-between border-bottom pb-2 mb-3 small">
+                            <span class="text-muted">Final Attendance:</span>
+                            <span class="fw-bold">{{ event.current_volunteers }} Participants</span>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center mt-auto d-print-none">
+                            <span class="badge bg-secondary px-3 py-2 rounded-pill">{{ event.status }}</span>
+                            <div class="d-flex justify-content-between align-items-center mt-auto d-print-none">
+    <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill">{{ event.status }}</span>
+    
+    <div class="btn-group">
+        <a href="{% url 'edit_event' event.id %}" class="btn btn-sm btn-outline-secondary" title="Edit Event">
+            <i class="bi bi-pencil"></i>
+        </a>
+        <a href="{% url 'delete_event' event.id %}" class="btn btn-sm btn-outline-danger" title="Delete Event">
+            <i class="bi bi-trash"></i>
+        </a>
+    </div>
 </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+    
+</div>
+
+<style>
+    /* Ensure background colors and shadows print correctly */
+    @media print {
+        body { background-color: white !important; }
+        .card { border: 1px solid #dee2e6 !important; box-shadow: none !important; break-inside: avoid; }
+        .bg-body-tertiary { background-color: #f8f9fa !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .progress-bar { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .badge { border: 1px solid #6c757d; color: black !important; background: transparent !important; }
+    }
+</style>
 {% endblock %}

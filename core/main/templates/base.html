@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html llang="en" data-bs-theme="light">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -23,7 +23,7 @@
         --aqi-blue: #0d6efd;
       }
       body {
-        background-color: #f4f7f9;
+        
         font-family:
           "Inter",
           system-ui,
@@ -52,27 +52,31 @@
     </style>
     {% block extra_css %}{% endblock %}
   </head>
-  <body>
-    <nav class="navbar bg-white navbar-light border-bottom fixed-top">
-      <div class="container-fluid">
-        <a class="navbar-brand text-primary" href="{% url 'home' %}">
-          <i class="bi bi-wind me-2"></i>AQI India
-        </a>
-        <button
-          class="navbar-toggler border-0 shadow-none"
-          type="button"
-          data-bs-toggle="offcanvas"
-          data-bs-target="#offcanvasNavbar"
-        >
-          <span class="navbar-toggler-icon"></span>
+  <body class="bg-body-tertiary">
+    <nav class="navbar bg-body border-bottom fixed-top">
+  <div class="container-fluid">
+    
+    <a class="navbar-brand text-primary" href="{% url 'home' %}">
+      <i class="bi bi-wind me-2"></i>AQI India
+    </a>
+
+    <div class="d-flex align-items-center gap-3">
+        
+        <button id="theme-toggle" class="btn btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center" style="width: 30px; height: 30px;" aria-label="Toggle Theme">
+            <i id="theme-icon" class="bi bi-moon-fill"></i>
         </button>
 
-        <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasNavbar">
-          <div class="offcanvas-header border-bottom bg-light">
-            <h5
-              class="offcanvas-title fw-bold text-primary"
+        <button class="navbar-toggler border-0 shadow-none p-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        
+    </div>
+
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasNavbar">
+      <div class="offcanvas-header border-bottom bg-body-tertiary">
+        <h5 class="offcanvas-title fw-bold text-primary"
               id="offcanvasNavbarLabel"
-            >
+        >
               <i class="bi bi-list me-2"></i>Menu
             </h5>
             <button
@@ -98,6 +102,7 @@
                   <i class="bi bi-person-circle me-2"></i> Profile & Report
                 </a>
               </li>
+              
               <li class="nav-item">
                 <a
                   class="nav-link px-3 {% if request.resolver_match.url_name == 'events' %}active fw-bold text-primary{% endif %}"
@@ -179,10 +184,10 @@
 
               <!-- 3. Footer Links -->
               <li class="nav-item">
-                <a class="nav-link px-3" href="#">
-                  <i class="bi bi-info-circle me-2"></i> About / Contact
-                </a>
-              </li>
+  <a class="nav-link px-3 {% if request.resolver_match.url_name == 'about' %}active fw-bold text-primary{% endif %}" href="{% url 'about' %}">
+    <i class="bi bi-info-circle me-2"></i> About & Contact
+  </a>
+</li>
             </ul>
 
             <!-- Bottom User Status & Logout -->
@@ -220,12 +225,50 @@
 
     <main style="min-height: 80vh">{% block content %}{% endblock %}</main>
 
-    <footer class="text-center py-4 text-muted mt-5 border-top bg-white">
+    <footer class="text-center py-4 text-muted mt-5 border-top bg-body">
       <p class="mb-0">© 2026 India Air Quality Project | Powered by WAQI API</p>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        const htmlElement = document.documentElement; // Targets the <html> tag
+
+        // 1. Check if the user previously saved a theme preference
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        
+        // 2. Apply that theme instantly on page load
+        htmlElement.setAttribute('data-bs-theme', currentTheme);
+        updateIcon(currentTheme);
+
+        // 3. Listen for clicks on the toggle button
+        themeToggle.addEventListener('click', () => {
+            let activeTheme = htmlElement.getAttribute('data-bs-theme');
+            let newTheme = activeTheme === 'light' ? 'dark' : 'light';
+            
+            // Apply new theme and save to local storage
+            htmlElement.setAttribute('data-bs-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateIcon(newTheme);
+        });
+
+        // Helper function to swap the Sun and Moon icons
+        function updateIcon(theme) {
+            if (theme === 'dark') {
+                themeIcon.classList.replace('bi-moon-fill', 'bi-sun-fill');
+                themeIcon.classList.replace('text-dark', 'text-warning'); // Make sun yellow
+                themeToggle.classList.replace('btn-outline-secondary', 'btn-outline-warning');
+            } else {
+                themeIcon.classList.replace('bi-sun-fill', 'bi-moon-fill');
+                themeIcon.classList.replace('text-warning', 'text-dark');
+                themeToggle.classList.replace('btn-outline-warning', 'btn-outline-secondary');
+            }
+        }
+    });
+</script>
     {% block extra_js %}{% endblock %}
   </body>
 </html>
