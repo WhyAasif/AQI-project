@@ -82,9 +82,10 @@ def home_view(request):
 
 @user_passes_test(is_admin)
 def admin_report(request):
+    Event.objects.filter(date__lt=date.today(), status='Upcoming').update(status='Completed')
+    
     events = Event.objects.annotate(current_volunteers=Count('registration')).all()
     return render(request, 'admin_report.html', {'events': events})
-
 def register(request):
     if request.method == 'POST':
         form = UserRegisterForm(request.POST)
@@ -111,22 +112,25 @@ def user_logout(request):
     return redirect('login')
 
 def event_list(request):
-    events = Event.objects.all()
+    Event.objects.filter(date__lt=date.today(), status='Upcoming').update(status='Completed')
+    
+    events = Event.objects.all().order_by('-date') 
+    
     user_reg_ids = []
     if request.user.is_authenticated:
         user_reg_ids = Registration.objects.filter(user=request.user).values_list('event_id', flat=True)
     return render(request, 'event_list.html', {'events': events, 'user_registrations': user_reg_ids})
 
-# --- NEW VIEW: Single Event Detail ---
 def event_detail(request, event_id):
+    # --- NEW: Check if this specific event has passed before loading details ---
+    Event.objects.filter(id=event_id, date__lt=date.today(), status='Upcoming').update(status='Completed')
+    
     event = get_object_or_404(Event, id=event_id)
     
-    # Calculate capacities and participants
     current_count = Registration.objects.filter(event=event).count()
     remaining_spots = max(0, event.capacity - current_count)
     progress_percentage = int((current_count / event.capacity) * 100) if event.capacity > 0 else 0
     
-    # Check if the logged-in user is already registered
     is_registered = False
     if request.user.is_authenticated:
         is_registered = Registration.objects.filter(user=request.user, event=event).exists()
@@ -213,8 +217,15 @@ def profile_view(request):
             return redirect('profile')
     else:
         form = UserProfileForm(instance=request.user)
-    return render(request, 'profile.html', {'form': form})
-
+        
+    # Fetch all participation records for the logged-in user
+    registrations = Registration.objects.filter(user=request.user).order_by('-reg_date')
+    
+    context = {
+        'form': form,
+        'registrations': registrations  # Pass this to the template
+    }
+    return render(request, 'profile.html', context)
 @login_required
 def download_event_report(request):
     response = HttpResponse(content_type='text/csv')
