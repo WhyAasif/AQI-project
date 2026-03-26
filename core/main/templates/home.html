@@ -54,6 +54,7 @@
     }
     .suggestion-item:hover { background: #f0f7ff; }
     .suggestion-item:last-child { border-bottom: none; }
+    .transition-all { transition: transform 0.3s ease, box-shadow 0.3s ease; } .transition-all:hover { transform: translateY(-5px); box-shadow: 0 1rem 3rem rgba(0,0,0,.1) !important; }
 </style>
 {% endblock %}
 
@@ -141,6 +142,108 @@
             </div>
         </div>
     </div>
+    <hr class="my-5 opacity-25">
+
+    <div class="row justify-content-center text-center mb-5 mt-4">
+        <div class="col-lg-8">
+            <h2 class="display-6 fw-bold mb-4">Checking AQI is not enough. Let’s improve it together.</h2>
+            
+            <div class="alert alert-danger shadow-sm border-0 rounded-4 p-4 p-md-5 text-start mb-5">
+                <h4 class="fw-bold text-danger mb-4">
+                    <i class="bi bi-exclamation-triangle-fill me-2 fs-3 align-middle"></i> The Reality of Air Pollution in Delhi
+                </h4>
+                <ul class="fs-5 text-dark mb-0" style="line-height: 1.8;">
+                    <li class="mb-3">
+                        Estimated deaths linked to air pollution rose from <strong class="text-danger">15,786</strong> in 2018 to <strong class="text-danger">17,188</strong> in 2023, making it a leading cause of mortality.
+                    </li>
+                    <li>
+                        <strong>Daily Impact:</strong> Reports suggest up to <strong class="text-danger">80 lives are lost daily</strong> in New Delhi due to air pollution-related illnesses.
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center text-center mb-5">
+        <div class="col-lg-10">
+            <h3 class="fw-extrabold mb-3 display-6">Be Part of Change 🚀</h3>
+            <p class="lead text-muted mb-5">Over <strong class="text-primary fs-4">120+ volunteers</strong> have already joined!</p>
+            
+            <div class="row g-4 justify-content-center">
+                <div class="col-md-4">
+                    <div class="card bg-success bg-opacity-10 text-success border-0 shadow-sm rounded-4 h-100">
+                        <div class="card-body py-5">
+                            <h1 class="display-3 mb-2"><i class="bi bi-tree-fill"></i></h1>
+                            <h2 class="fw-bolder mb-1">250+</h2>
+                            <p class="mb-0 fw-medium">Trees Planted 🌳</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-primary bg-opacity-10 text-primary border-0 shadow-sm rounded-4 h-100">
+                        <div class="card-body py-5">
+                            <h1 class="display-3 mb-2"><i class="bi bi-people-fill"></i></h1>
+                            <h2 class="fw-bolder mb-1">120+</h2>
+                            <p class="mb-0 fw-medium">Volunteers 👥</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-info bg-opacity-10 text-info border-0 shadow-sm rounded-4 h-100">
+                        <div class="card-body py-5" style="color: #0c63e4;">
+                            <h1 class="display-3 mb-2"><i class="bi bi-stars"></i></h1>
+                            <h2 class="fw-bolder mb-1">15+</h2>
+                            <p class="mb-0 fw-medium">Drives Conducted 🧹</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-5 pt-4">
+        <div class="col-12 text-center mb-5">
+            <h3 class="fw-bold">Upcoming Events <span class="text-muted fs-5 fw-normal">(Next 7–10 Days)</span></h3>
+        </div>
+        
+        <div class="row g-4 justify-content-center">
+            {% for event in upcoming_events %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 shadow-sm border-0 rounded-4 transition-all">
+                    <div class="card-body p-4">
+                        <span class="badge bg-success-subtle text-success rounded-pill px-3 py-2 mb-3 shadow-sm">Upcoming</span>
+                        <h4 class="fw-bold mb-3 text-truncate">{{ event.title }}</h4>
+                        
+                        <div class="mb-4 small text-secondary">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-calendar-event me-2 text-primary fs-5"></i> 
+                                <span class="fw-medium">{{ event.date }}</span>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-geo-alt me-2 text-primary fs-5"></i> 
+                                <span class="fw-medium text-truncate">{{ event.venue }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 p-4 pt-0">
+                        <a href="{% url 'event_detail' event.id %}" class="btn btn-primary w-100 rounded-pill fw-bold shadow-sm py-2">
+                            View Event & Join <i class="bi bi-arrow-right-short ms-1 fs-5 align-middle"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center py-4">
+                <div class="bg-light d-inline-block p-4 rounded-circle mb-3">
+                    <i class="bi bi-calendar-x display-5 text-muted"></i>
+                </div>
+                <h5 class="fw-bold text-muted">No upcoming events right now. Check back soon!</h5>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div> ```
+
 </div>
 {% endblock %}
 

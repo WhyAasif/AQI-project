@@ -79,6 +79,15 @@ def home_view(request):
     except Exception:
         context['error'] = "Could not fetch live data. Please check your connection or search query."
 
+    # --- NEW CODE FOR HOME PAGE ACTION SECTION ---
+    # 1. Update old events to 'Completed' just in case
+    Event.objects.filter(date__lt=date.today(), status='Upcoming').update(status='Completed')
+    
+    # 2. Fetch the upcoming events (max 6)
+    upcoming_events = Event.objects.filter(status='Upcoming').order_by('date')[:6]
+    context['upcoming_events'] = upcoming_events
+    # ---------------------------------------------
+
     return render(request, 'home.html', context)
 
 @user_passes_test(is_admin)
