@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-body p-5">
+                    <h2 class="fw-bold mb-4">My Profile</h2>
+                    
+                    <form method="POST" class="mb-5">
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">First Name</label>
+                                {{ form.first_name }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Last Name</label>
+                                {{ form.last_name }}
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-bold">Email Address</label>
+                                {{ form.email }}
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-4 px-4 rounded-pill">Update Information</button>
+                    </form>
+
+                    <hr class="my-5">
+
+                    <h4 class="fw-bold mb-3">Participation Records</h4>
+                    <p class="text-muted small">Download your official environmental contribution report.</p>
+                    <a href="{% url 'download_report' %}" class="btn btn-outline-success rounded-pill px-4">
+                        <i class="bi bi-download me-2"></i> Download Activity Report (.csv)
+                    </a>
+
+                    <div class="mt-5 pt-4 border-top">
+                        <form action="{% url 'logout' %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger rounded-pill px-4">
+                                <i class="bi bi-box-arrow-right me-2"></i> Logout from Session
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

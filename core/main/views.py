@@ -1,11 +1,15 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
-from .forms import UserRegisterForm
+from .forms import UserRegisterForm, UserProfileForm
 from django.contrib.auth import authenticate, login, logout
 from .models import Event, Registration, User
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db.models import Count
 import requests
+from datetime import date, timedelta, datetime
+import csv
+from django.http import HttpResponse
+
 
 # Helper to check if user is admin
 def is_admin(user):
@@ -147,8 +151,86 @@ def join_event(request, event_id):
     Registration.objects.get_or_create(user=request.user, event=event)
     return redirect('my_events')
 
+
 @login_required
 def my_events(request):
     registrations = Registration.objects.filter(user=request.user).order_by('-reg_date')
-    return render(request, 'my_events.html', {'registrations': registrations})
+    
+    # Calculate total volunteer hours in the last 365 days
+    one_year_ago = date.today() - timedelta(days=365)
+    attended_regs = Registration.objects.filter(
+        user=request.user, 
+        status='Attended',
+        event__date__gte=one_year_ago
+    )
+    
+    total_hours = 0.0
+    for reg in attended_regs:
+        if reg.event.time and reg.event.end_time:
+            # Combine dates to calculate duration in hours
+            start = datetime.combine(date.today(), reg.event.time)
+            end = datetime.combine(date.today(), reg.event.end_time)
+            if end > start:
+                duration = (end - start).total_seconds() / 3600.0
+                total_hours += duration
 
+    context = {
+        'registrations': registrations,
+        'total_hours': round(total_hours, 1),
+        'today': date.today(),
+    }
+    return render(request, 'my_events.html', context)
+
+@login_required
+def update_registration_status(request, reg_id, status):
+    """Allows a user to mark themselves as Attended or Absent"""
+    reg = get_object_or_404(Registration, id=reg_id, user=request.user)
+    
+    # Validation: Only allow marking 'Attended' if it is the day of the event (or past)
+    if status == 'Attended' and reg.event.date > date.today():
+        # Do not update if trying to mark attended before the event date
+        pass
+    elif status in ['Attended', 'Absent']:
+        reg.status = status
+        reg.save()
+        
+    return redirect('my_events')
+
+@login_required
+def cancel_registration(request, reg_id):
+    """Allows a user to completely delete their participation registration"""
+    reg = get_object_or_404(Registration, id=reg_id, user=request.user)
+    if request.method == 'POST':
+        reg.delete()
+    return redirect('my_events')
+
+@login_required
+def profile_view(request):
+    if request.method == 'POST':
+        form = UserProfileForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            return redirect('profile')
+    else:
+        form = UserProfileForm(instance=request.user)
+    return render(request, 'profile.html', {'form': form})
+
+@login_required
+def download_event_report(request):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="{request.user.username}_report.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow(['Event Title', 'Date', 'Venue', 'Status', 'Hours'])
+
+    registrations = Registration.objects.filter(user=request.user)
+    for reg in registrations:
+        hours = 0
+        if reg.status == 'Attended' and reg.event.time and reg.event.end_time:
+            start = datetime.combine(date.today(), reg.event.time)
+            end = datetime.combine(date.today(), reg.event.end_time)
+            hours = round((end - start).total_seconds() / 3600.0, 1)
+        
+        writer.writerow([reg.event.title, reg.event.date, reg.event.venue, reg.status, hours])
+
+    return response

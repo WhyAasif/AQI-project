@@ -4,15 +4,29 @@
 
 {% block content %}
 <div class="container py-5">
-    <div class="row mb-5">
+    <div class="row mb-4">
         <div class="col-md-8">
             <h1 class="fw-bold display-5 mb-2">My Activity</h1>
-            <p class="text-muted lead">Manage your upcoming initiatives and view your official volunteer log.</p>
+            <p class="text-muted lead">Manage your participation and track your volunteer milestones.</p>
         </div>
         <div class="col-md-4 d-flex align-items-center justify-content-md-end">
             <a href="{% url 'events' %}" class="btn btn-primary px-4 rounded-pill shadow-sm">
                 <i class="bi bi-plus-lg me-2"></i>Browse More Events
             </a>
+        </div>
+    </div>
+
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card bg-success text-white shadow-sm border-0 rounded-4" style="background: linear-gradient(135deg, #198754, #20c997);">
+                <div class="card-body p-4 d-flex flex-column flex-md-row justify-content-between align-items-center">
+                    <div class="mb-3 mb-md-0">
+                        <h4 class="mb-1 fw-bold"><i class="bi bi-clock-history me-2"></i>Volunteer Impact</h4>
+                        <p class="mb-0 opacity-75">Total verified hours contributed in the last 365 days.</p>
+                    </div>
+                    <h1 class="display-4 fw-bold mb-0">{{ total_hours }} <span class="fs-4 fw-normal">hrs</span></h1>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -22,14 +36,11 @@
             {% if reg.status == 'Registered' %}
             <div class="col-md-6 col-lg-4">
                 <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden">
-                    <div class="card-body p-4">
+                    <div class="card-body p-4 d-flex flex-column">
                         <div class="d-flex justify-content-between align-items-start mb-3">
                             <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2">
-                                <i class="bi bi-check-circle-fill me-1"></i> {{ reg.status }}
+                                <i class="bi bi-calendar-check me-1"></i> {{ reg.status }}
                             </span>
-                            <small class="text-muted small">
-                                Joined on {{ reg.reg_date|date:"M d, Y" }}
-                            </small>
                         </div>
 
                         <h4 class="card-title fw-bold mb-3">{{ reg.event.title }}</h4>
@@ -48,9 +59,33 @@
                             </div>
                         </div>
 
-                        <p class="card-text text-muted small mb-0">
+                        <p class="card-text text-muted small mb-0 flex-grow-1">
                             {{ reg.event.description|truncatewords:15 }}
                         </p>
+
+                        <div class="mt-4 pt-3 border-top d-flex flex-wrap gap-2">
+    {% if reg.event.date <= today %}
+        <a href="{% url 'update_registration_status' reg.id 'Attended' %}" class="btn btn-sm btn-success flex-fill">
+            <i class="bi bi-check-circle me-1"></i> Attended
+        </a>
+    {% else %}
+        <button class="btn btn-sm btn-success flex-fill disabled" title="Available on day of event">
+            <i class="bi bi-check-circle me-1"></i> Attended
+        </button>
+    {% endif %}
+    
+    <a href="{% url 'update_registration_status' reg.id 'Absent' %}" class="btn btn-sm btn-warning flex-fill text-dark">
+        <i class="bi bi-x-circle me-1"></i> Absent
+    </a>
+</div>
+
+                            <form action="{% url 'cancel_registration' reg.id %}" method="POST" class="w-100 mt-2" onsubmit="return confirm('Are you sure you want to withdraw your participation? This action cannot be undone.');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-danger w-100">
+                                    <i class="bi bi-trash3 me-1"></i> Withdraw / Delete
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -62,11 +97,8 @@
         {% endfor %}
     </div>
 
-    <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-4 mt-5">
+    <div class="border-bottom pb-2 mb-4 mt-5">
         <h3 class="fw-bold mb-0">Official Activity Log</h3>
-        <button onclick="window.print()" class="btn btn-outline-secondary btn-sm d-print-none">
-            <i class="bi bi-printer me-2"></i>Print Report
-        </button>
     </div>
     
     <div class="card shadow-sm border-0 rounded-4 mb-5">
@@ -79,26 +111,26 @@
                             <th>Date</th>
                             <th>Venue</th>
                             <th>Status</th>
-                            <th class="pe-4">Registered On</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for reg in registrations %}
-                        <tr>
-                            <td class="ps-4 fw-bold text-primary">{{ reg.event.title }}</td>
-                            <td>{{ reg.event.date }}</td>
-                            <td>{{ reg.event.venue }}</td>
-                            <td>
-                                <span class="badge rounded-pill {% if reg.status == 'Attended' %}bg-success{% elif reg.status == 'Absent' %}bg-danger{% else %}bg-info text-dark{% endif %}">
-                                    {{ reg.status }}
-                                </span>
-                            </td>
-                            <td class="pe-4 text-muted small">{{ reg.reg_date|date:"M d, Y" }}</td>
-                        </tr>
+                            {% if reg.status != 'Registered' %}
+                            <tr>
+                                <td class="ps-4 fw-bold text-primary">{{ reg.event.title }}</td>
+                                <td>{{ reg.event.date }}</td>
+                                <td>{{ reg.event.venue }}</td>
+                                <td>
+                                    <span class="badge rounded-pill {% if reg.status == 'Attended' %}bg-success{% elif reg.status == 'Absent' %}bg-danger{% else %}bg-info text-dark{% endif %}">
+                                        {{ reg.status }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endif %}
                         {% empty %}
-                        <tr>
-                            <td colspan="5" class="text-center py-5 text-muted">No activity found.</td>
-                        </tr>
+                            <tr>
+                                <td colspan="4" class="text-center py-5 text-muted">No finalized activity found.</td>
+                            </tr>
                         {% endfor %}
                     </tbody>
                 </table>
@@ -110,12 +142,5 @@
 <style>
     .x-small { font-size: 0.75rem; }
     .badge { font-weight: 600; }
-    
-    /* Hide the upcoming cards and extra buttons when printing the report */
-    @media print {
-        .d-print-none, .row.g-4.mb-5, h3.border-bottom {
-            display: none !important;
-        }
-    }
 </style>
 {% endblock %}

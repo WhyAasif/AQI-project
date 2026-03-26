@@ -19,6 +19,7 @@ class Event(models.Model):
     description = models.TextField()
     capacity = models.PositiveIntegerField(default=50) 
     status = models.CharField(max_length=20, default='Upcoming')
+    duration_hours = models.PositiveIntegerField(default=2)
 
     def __str__(self):
         return self.title
