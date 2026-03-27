@@ -1,3 +1,4 @@
+{% load static %}
 <!doctype html>
 <html llang="en" data-bs-theme="light">
   <head>
@@ -18,6 +19,9 @@
       rel="stylesheet"
       href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     />
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    
+    
     <style>
       :root {
         --aqi-blue: #0d6efd;
@@ -53,7 +57,7 @@
     {% block extra_css %}{% endblock %}
   </head>
   <body class="bg-body-tertiary">
-    <nav class="navbar bg-body border-bottom fixed-top">
+    <nav class="navbar bg-body border-bottom fixed-top py-1">
   <div class="container-fluid">
     
     <a class="navbar-brand text-primary" href="{% url 'home' %}">

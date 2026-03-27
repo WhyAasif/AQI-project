@@ -3,63 +3,11 @@
 {% block title %}Live AQI Dashboard{% endblock %}
 
 {% block extra_css %}
-<style>
-    .dashboard-container { min-height: 80vh; }
-    .map-container {
-        height: 400px;
-        border-radius: 16px;
-        overflow: hidden;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        position: sticky;
-        top: 90px;
-    }
-    #map { height: 100%; width: 100%; }
-    
-    .aqi-card { border-radius: 20px; border: none; }
-    .aqi-value { font-size: 5rem; line-height: 1; }
-    
-    .pollutant-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-        gap: 15px;
-    }
-    .pollutant-box {
-        
-        padding: 15px;
-        border-radius: 12px;
-        text-align: center;
-        border: 1px solid #eee;
-    }
 
-    /* Search Suggestions Styling */
-    .search-wrapper { position: relative; }
-    #search-results {
-        position: absolute;
-        top: 100%;
-        left: 0;
-        right: 0;
-        z-index: 1000;
-    
-        border-radius: 12px;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-        max-height: 300px;
-        overflow-y: auto;
-        display: none;
-    }
-    .suggestion-item {
-        padding: 12px 20px;
-        cursor: pointer;
-        border-bottom: 1px solid #f8f9fa;
-        transition: background 0.2s;
-    }
-    .suggestion-item:hover { background: #f0f7ff; }
-    .suggestion-item:last-child { border-bottom: none; }
-    .transition-all { transition: transform 0.3s ease, box-shadow 0.3s ease; } .transition-all:hover { transform: translateY(-5px); box-shadow: 0 1rem 3rem rgba(0,0,0,.1) !important; }
-</style>
 {% endblock %}
 
 {% block content %}
-<div class="container py-4 dashboard-container">
+<div class="container ashboard-container p-0">
     <!-- Top Search Bar -->
     <div class="row mb-4 justify-content-center">
         <div class="col-md-8 search-wrapper">
@@ -67,7 +15,7 @@
                 <span class="input-group-text bg-body border-0 ps-4">
                     <i class="bi bi-search text-primary"></i>
                 </span>
-                <input type="text" id="city-search" class="form-control border-0 py-3" placeholder="Search city or station (e.g. Noida)..." autocomplete="off">
+                <input type="text" id="city-search" class="form-control border-0 py-0.5" placeholder="Search city or station (e.g. Noida)..." autocomplete="off ">
             </div>
             <div id="search-results"></div>
         </div>
@@ -77,7 +25,7 @@
         <!-- Left Side: AQI Dashboard -->
         <div class="col-lg-8">
             <div class="card aqi-card shadow-sm mb-4" id="main-card">
-                <div class="card-body p-4 p-md-5">
+                <div class="card-body py-0-md-5">
                     <div class="row align-items-center">
                         <div class="col-md-6 text-center text-md-start mb-4 mb-md-0 border-end-md">
                             <h6 class="text-uppercase tracking-widest text-muted fw-bold mb-2">Live Air Quality</h6>
@@ -88,7 +36,7 @@
                             <p id="display-advice" class="text-muted small px-2">Please wait while we fetch the air quality data for your area.</p>
                         </div>
                         <div class="col-md-6 text-center">
-                            <h1 id="display-aqi" class="aqi-value fw-extrabold text-dark mb-0">--</h1>
+                            <h1 id="display-aqi" class="fw-bold mb-3">--</h1>
                             <p class="text-muted fw-medium mt-0">AQI Index</p>
                         </div>
                     </div>
@@ -142,22 +90,22 @@
             </div>
         </div>
     </div>
-    <hr class="my-5 opacity-25">
+    <hr class="my-1 opacity-25">
 
     <div class="row justify-content-center text-center mb-5 mt-4">
         <div class="col-lg-8">
             <h2 class="display-6 fw-bold mb-4">Checking AQI is not enough. Let’s improve it together.</h2>
             
-            <div class="alert alert-danger shadow-sm border-0 rounded-4 p-4 p-md-5 text-start mb-5">
-                <h4 class="fw-bold text-danger mb-4">
-                    <i class="bi bi-exclamation-triangle-fill me-2 fs-3 align-middle"></i> The Reality of Air Pollution in Delhi
+            <div class="alert shadow-sm border-0 rounded-4 p-4 p-md-5 text-start mb-5" style="background-color: var(--bs-danger-bg-subtle);">
+                  <h4 style="color: var(--bs-danger);">  <i class="bi bi-exclamation-triangle-fill me-2 fs-3 align-middle"></i>
+                     The Reality of Air Pollution in Delhi 
                 </h4>
-                <ul class="fs-5 text-dark mb-0" style="line-height: 1.8;">
+                <ul class="fs-5 text-body mb-0" style="line-height: 1.8;">
                     <li class="mb-3">
-                        Estimated deaths linked to air pollution rose from <strong class="text-danger">15,786</strong> in 2018 to <strong class="text-danger">17,188</strong> in 2023, making it a leading cause of mortality.
+                        Estimated deaths linked to air pollution rose from <strong class="text-danger">15,786</strong> in 2018 to <strong style="color: var(--bs-danger);">17,188</strong> in 2023, making it a leading cause of mortality.
                     </li>
                     <li>
-                        <strong>Daily Impact:</strong> Reports suggest up to <strong class="text-danger">80 lives are lost daily</strong> in New Delhi due to air pollution-related illnesses.
+                        <strong>Daily Impact:</strong> Reports suggest up to <strong style="color: var(--bs-danger);">80 lives are lost daily</strong> in New Delhi due to air pollution-related illnesses.
                     </li>
                 </ul>
             </div>
@@ -287,7 +235,6 @@
 
         document.getElementById('display-city').innerText = data.city.name;
         document.getElementById('display-aqi').innerText = aqi;
-        document.getElementById('display-aqi').style.color = meta.color;
         document.getElementById('display-category').innerText = meta.cat;
         document.getElementById('aqi-color-box').style.backgroundColor = meta.color;
         document.getElementById('display-advice').innerText = meta.advice;
@@ -330,7 +277,7 @@
                     json.data.forEach(station => {
                         const div = document.createElement('div');
                         div.className = 'suggestion-item';
-                        div.innerHTML = `<strong>${station.station.name}</strong> <span class="badge bg-light text-dark float-end">AQI: ${station.aqi}</span>`;
+                        div.innerHTML = `<strong>${station.station.name}</strong> <span class="badge bg-light text-body float-end">AQI: ${station.aqi}</span>`;
                         div.onclick = () => selectStation(station.uid);
                         resultsBox.appendChild(div);
                     });

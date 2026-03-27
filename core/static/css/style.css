@@ -1,0 +1,53 @@
+    .dashboard-container { min-height: 80vh; }
+    .map-container {
+        height: 400px;
+        width: 300px;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        position: sticky;
+        top: 90px;
+    }
+    #map { height: 100%; width: 100%; }
+    
+    .aqi-card { border-radius: 20px; border: none; }
+    .aqi-value { font-size: 5rem; line-height: 1; }
+    
+    .pollutant-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 15px;
+    }
+    .pollutant-box {
+        
+        padding: 15px;
+        border-radius: 12px;
+        text-align: center;
+        border: 1px solid #eee;
+    }
+
+    /* Search Suggestions Styling */
+    .search-wrapper { position: relative; }
+    #search-results {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+    
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        max-height: 300px;
+        overflow-y: auto;
+        display: none;
+    }
+    .suggestion-item {
+        background: var(--bs-body-bg);
+        padding: 12px 20px;
+        cursor: pointer;
+        border-bottom: 1px solid #f8f9fa;
+        transition: background 0.2s;
+    }
+    .suggestion-item:hover { background: var(--bs-secondary-bg);; }
+    .suggestion-item:last-child { border-bottom: none; }
+    .transition-all { transition: transform 0.3s ease, box-shadow 0.3s ease; } .transition-all:hover { transform: translateY(-5px); box-shadow: 0 1rem 3rem rgba(0,0,0,.1) !important; }
