@@ -2,146 +2,188 @@
 
 {% block title %}Live AQI Dashboard{% endblock %}
 
-{% block extra_css %}
-
-{% endblock %}
-
 {% block content %}
-<div class="container ashboard-container p-0">
-    <!-- Top Search Bar -->
-    <div class="row mb-4 justify-content-center">
-        <div class="col-md-8 search-wrapper">
-            <div class="input-group input-group-lg shadow-sm">
-                <span class="input-group-text bg-body border-0 ps-4">
-                    <i class="bi bi-search text-primary"></i>
-                </span>
-                <input type="text" id="city-search" class="form-control border-0 py-0.5" placeholder="Search city or station (e.g. Noida)..." autocomplete="off ">
+<div class="hero-section position-relative mb-5 rounded-bottom-5 overflow-hidden shadow">
+    <div class="hero-bg position-absolute w-100 h-100 top-0 start-0" style="background: linear-gradient(to right, rgba(13, 110, 253, 0.8), rgba(10, 88, 202, 0.6)), url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=2000&auto=format&fit=crop') center/cover no-repeat; z-index: 0;"></div>
+    
+    <div class="container position-relative z-1 py-2 text-white text-center">
+        <h1 class="display-4 fw-extrabold mb-3 mt-4 text-shadow">Breathe Better, Live Better</h1>
+        <p class="lead mb-5 opacity-75">Monitor real-time air quality in your city and join local initiatives to make a difference.</p>
+        
+        <div class="row justify-content-center pb-2">
+            <div class="col-md-8 col-lg-6 search-wrapper">
+                <div class="search-glass-container p-2 rounded-pill shadow-lg bg-white bg-opacity-10 backdrop-blur">
+                    <div class="input-group input-group-lg bg-white rounded-pill overflow-hidden">
+                        <span class="input-group-text bg-white border-0 ps-4">
+                            <i class="bi bi-search text-primary"></i>
+                        </span>
+                        <input type="text" id="city-search" class="form-control border-0 shadow-none py-3" placeholder="Search city or station (e.g. Noida)..." autocomplete="off">
+                    </div>
+                </div>
+                <div id="search-results" class="text-start mt-2"></div>
             </div>
-            <div id="search-results"></div>
         </div>
     </div>
+</div>
 
-    <div class="row g-4">
-        <!-- Left Side: AQI Dashboard -->
+<div class="container dashboard-container p-0">
+    <div class="row g-4 mb-5">
         <div class="col-lg-8">
-            <div class="card aqi-card shadow-sm mb-4" id="main-card">
-                <div class="card-body py-0-md-5">
-                    <div class="row align-items-center">
-                        <div class="col-md-6 text-center text-md-start mb-4 mb-md-0 border-end-md">
-                            <h6 class="text-uppercase tracking-widest text-muted fw-bold mb-2">Live Air Quality</h6>
-                            <h2 id="display-city" class="fw-bold mb-3">Detecting Location...</h2>
-                            <div id="aqi-color-box" class="d-inline-block px-4 py-2 rounded-pill text-white fw-bold mb-3 shadow-sm">
+            <div class="card aqi-card shadow-lg mb-4 border-0 overflow-hidden" id="main-card">
+                <div class="card-body p-4 p-md-5 bg-white position-relative">
+                    <div class="position-absolute top-0 end-0 p-4 opacity-10">
+                        <i class="bi bi-wind" style="font-size: 8rem;"></i>
+                    </div>
+
+                    <div class="row align-items-center position-relative z-1">
+                        <div class="col-md-7 text-center text-md-start mb-4 mb-md-0 border-end-md pe-md-4">
+                            <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-2 mb-3 fw-bold tracking-widest text-uppercase">Live Air Quality</span>
+                            <h2 id="display-city" class="fw-bold mb-3 display-6">Detecting Location...</h2>
+                            <div id="aqi-color-box" class="d-inline-block px-4 py-2 rounded-pill text-white fw-bold mb-3 shadow-sm transition-all">
                                 <span id="display-category">Loading...</span>
                             </div>
-                            <p id="display-advice" class="text-muted small px-2">Please wait while we fetch the air quality data for your area.</p>
+                            <p id="display-advice" class="text-muted small px-2 mb-0">Please wait while we fetch the air quality data for your area.</p>
                         </div>
-                        <div class="col-md-6 text-center">
-                            <h1 id="display-aqi" class="fw-bold mb-3">--</h1>
-                            <p class="text-muted fw-medium mt-0">AQI Index</p>
+                        <div class="col-md-5 text-center ps-md-4">
+                            <div class="aqi-circle mx-auto d-flex flex-column justify-content-center align-items-center shadow-sm">
+                                <h1 id="display-aqi" class="fw-extrabold mb-0" style="font-size: 4rem;">--</h1>
+                                <p class="text-muted fw-bold mb-0 text-uppercase tracking-widest" style="font-size: 0.8rem;">AQI Index</p>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
             <div class="mb-4">
-                <h5 class="fw-bold mb-3"><i class="bi bi-activity text-primary me-2"></i>Key Pollutants</h5>
+                <h5 class="fw-bold mb-3 ms-2"><i class="bi bi-activity text-primary me-2"></i>Key Pollutants</h5>
                 <div class="pollutant-grid" id="pollutant-list">
-                    <!-- Dynamic Pollutants -->
-                    <div class="pollutant-box shadow-sm">
-                        <small class="text-muted d-block mb-1">PM2.5</small>
-                        <h4 class="fw-bold mb-0" id="val-pm25">--</h4>
+                    <div class="pollutant-box shadow-sm bg-white">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <small class="text-muted fw-bold">PM2.5</small>
+                            <i class="bi bi-cloud-haze text-secondary opacity-50"></i>
+                        </div>
+                        <h3 class="fw-bold text-dark mb-0" id="val-pm25">--</h3>
                     </div>
-                    <div class="pollutant-box shadow-sm">
-                        <small class="text-muted d-block mb-1">PM10</small>
-                        <h4 class="fw-bold mb-0" id="val-pm10">--</h4>
+                    <div class="pollutant-box shadow-sm bg-white">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <small class="text-muted fw-bold">PM10</small>
+                            <i class="bi bi-cloud-haze2 text-secondary opacity-50"></i>
+                        </div>
+                        <h3 class="fw-bold text-dark mb-0" id="val-pm10">--</h3>
                     </div>
-                    <div class="pollutant-box shadow-sm">
-                        <small class="text-muted d-block mb-1">Ozone(O3)</small>
-                        <h4 class="fw-bold mb-0" id="val-o3">--</h4>
+                    <div class="pollutant-box shadow-sm bg-white">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <small class="text-muted fw-bold">Ozone (O3)</small>
+                            <i class="bi bi-sun text-secondary opacity-50"></i>
+                        </div>
+                        <h3 class="fw-bold text-dark mb-0" id="val-o3">--</h3>
                     </div>
-                    <div class="pollutant-box shadow-sm">
-                        <small class="text-muted d-block mb-1">Nitrogen Dio(NO2)</small>
-                        <h4 class="fw-bold mb-0" id="val-no2">--</h4>
+                    <div class="pollutant-box shadow-sm bg-white">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <small class="text-muted fw-bold">NO2</small>
+                            <i class="bi bi-car-front text-secondary opacity-50"></i>
+                        </div>
+                        <h3 class="fw-bold text-dark mb-0" id="val-no2">--</h3>
                     </div>
-                    <div class="pollutant-box shadow-sm">
-                        <small class="text-muted d-block mb-1">Sulfur Dio(SO2)</small>
-                        <h4 class="fw-bold mb-0" id="val-so2">--</h4>
+                    <div class="pollutant-box shadow-sm bg-white">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <small class="text-muted fw-bold">SO2</small>
+                            <i class="bi bi-building text-secondary opacity-50"></i>
+                        </div>
+                        <h3 class="fw-bold text-dark mb-0" id="val-so2">--</h3>
                     </div>
-                    <div class="pollutant-box shadow-sm">
-                        <small class="text-muted d-block mb-1">Carbon Mono(CO)</small>
-                        <h4 class="fw-bold mb-0" id="val-co">--</h4>
+                    <div class="pollutant-box shadow-sm bg-white">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <small class="text-muted fw-bold">Carbon (CO)</small>
+                            <i class="bi bi-fire text-secondary opacity-50"></i>
+                        </div>
+                        <h3 class="fw-bold text-dark mb-0" id="val-co">--</h3>
                     </div>
                 </div>
             </div>
             
-            <div class="alert alert-light border shadow-sm rounded-4 p-3 small text-muted">
-                <i class="bi bi-info-circle-fill text-primary me-2"></i>
-                 Last updated: <span id="last-update">--</span>
+            <div class="d-flex align-items-center text-muted small ms-2">
+                <i class="bi bi-clock-history text-primary me-2"></i>
+                <span>Last updated: <span id="last-update" class="fw-bold">--</span></span>
             </div>
         </div>
 
-        <!-- Right Side: Small Map -->
         <div class="col-lg-4">
-            <div class="map-container">
+            <div class="map-container shadow-lg border border-4 border-white">
                 <div id="map"></div>
             </div>
-            <div class="mt-3 text-center small text-muted">
-                <i class="bi bi-layers me-1"></i> Interactive AQI Map Layer
+            <div class="mt-3 text-center small fw-bold text-muted bg-white py-2 rounded-pill shadow-sm w-75 mx-auto">
+                <i class="bi bi-geo-alt-fill text-danger me-1"></i> Interactive AQI Map Layer
             </div>
         </div>
     </div>
-    <hr class="my-1 opacity-25">
 
-    <div class="row justify-content-center text-center mb-5 mt-4">
-        <div class="col-lg-8">
-            <h2 class="display-6 fw-bold mb-4">Checking AQI is not enough. Let’s improve it together.</h2>
+<div class="row align-items-stretch bg-white rounded-4 shadow-sm overflow-hidden mb-5 mx-0">
+    <div class="col-md-5 p-0 position-relative">
+        <img src="https://plus.unsplash.com/premium_photo-1673240845240-2fce9077a6e9?q=80&w=1738&auto=format&fit=crop" alt="Smog in city" class="w-100 h-100 object-fit-cover position-absolute top-0 start-0">
+        <div class="position-absolute top-0 start-0 w-100 h-100" style="background: linear-gradient(to right, transparent, rgba(255,255,255,1)); z-index: 1;"></div>
+    </div>
+    
+    <div class="col-md-7 p-4 p-lg-4 d-flex flex-column justify-content-center position-relative" style="z-index: 2;">
+        <div>
+            <span class="badge bg-danger-subtle text-danger rounded-pill px-3 py-2 mb-2 fw-bold shadow-sm">
+                <i class="bi bi-exclamation-triangle-fill me-1"></i> The Reality
+            </span>
             
-            <div class="alert shadow-sm border-0 rounded-4 p-4 p-md-5 text-start mb-5" style="background-color: var(--bs-danger-bg-subtle);">
-                  <h4 style="color: var(--bs-danger);">  <i class="bi bi-exclamation-triangle-fill me-2 fs-3 align-middle"></i>
-                     The Reality of Air Pollution in Delhi 
-                </h4>
-                <ul class="fs-5 text-body mb-0" style="line-height: 1.8;">
-                    <li class="mb-3">
-                        Estimated deaths linked to air pollution rose from <strong class="text-danger">15,786</strong> in 2018 to <strong style="color: var(--bs-danger);">17,188</strong> in 2023, making it a leading cause of mortality.
-                    </li>
-                    <li>
-                        <strong>Daily Impact:</strong> Reports suggest up to <strong style="color: var(--bs-danger);">80 lives are lost daily</strong> in New Delhi due to air pollution-related illnesses.
-                    </li>
-                </ul>
+            <h2 class="fs-3 fw-extrabold mb-3 text-dark">Air pollution isn't just a number. It's a crisis.</h2>
+            
+            <div class="border-start border-danger border-4 ps-3 mb-3">
+                <p class="text-body mb-2" style="line-height: 1.5;">
+                    Estimated deaths linked to air pollution in Delhi rose to <strong class="text-danger">17,188</strong> in 2023, making it a leading cause of mortality.
+                </p>
+                <p class="text-muted small mb-0">
+                    <strong>Daily Impact:</strong> Reports suggest up to <strong class="text-danger">80 lives are lost daily</strong> in New Delhi alone due to air pollution-related illnesses.
+                </p>
             </div>
+            
+            <a href="#upcoming-events" class="btn btn-sm btn-outline-danger rounded-pill fw-bold px-4 py-2 mt-1 shadow-sm">
+                Take Action Today <i class="bi bi-arrow-down-short"></i>
+            </a>
         </div>
     </div>
+</div>
 
-    <div class="row justify-content-center text-center mb-5">
+    <div class="row justify-content-center text-center mb-5 mt-5">
         <div class="col-lg-10">
-            <h3 class="fw-extrabold mb-3 display-6">Be Part of Change 🚀</h3>
-            <p class="lead text-muted mb-5">Over <strong class="text-primary fs-4">120+ volunteers</strong> have already joined!</p>
+            <h3 class="fw-extrabold mb-3 display-6">Be Part of the Change 🚀</h3>
+            <p class="lead text-muted mb-5">Join our growing community of <strong class="text-primary">environmental guardians.</strong></p>
             
             <div class="row g-4 justify-content-center">
                 <div class="col-md-4">
-                    <div class="card bg-success bg-opacity-10 text-success border-0 shadow-sm rounded-4 h-100">
+                    <div class="card bg-success-subtle text-success border-0 shadow-sm rounded-4 h-100 transition-all text-center">
                         <div class="card-body py-5">
-                            <h1 class="display-3 mb-2"><i class="bi bi-tree-fill"></i></h1>
-                            <h2 class="fw-bolder mb-1">250+</h2>
-                            <p class="mb-0 fw-medium">Trees Planted 🌳</p>
+                            <div class="bg-white rounded-circle d-inline-flex justify-content-center align-items-center mb-3 shadow-sm" style="width: 80px; height: 80px;">
+                                <i class="bi bi-tree-fill fs-1 text-success"></i>
+                            </div>
+                            <h2 class="fw-bolder display-5 mb-1 text-dark">250+</h2>
+                            <p class="mb-0 fw-bold text-uppercase tracking-widest small">Trees Planted</p>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <div class="card bg-primary bg-opacity-10 text-primary border-0 shadow-sm rounded-4 h-100">
+                    <div class="card bg-primary-subtle text-primary border-0 shadow-sm rounded-4 h-100 transition-all text-center">
                         <div class="card-body py-5">
-                            <h1 class="display-3 mb-2"><i class="bi bi-people-fill"></i></h1>
-                            <h2 class="fw-bolder mb-1">120+</h2>
-                            <p class="mb-0 fw-medium">Volunteers 👥</p>
+                            <div class="bg-white rounded-circle d-inline-flex justify-content-center align-items-center mb-3 shadow-sm" style="width: 80px; height: 80px;">
+                                <i class="bi bi-people-fill fs-1 text-primary"></i>
+                            </div>
+                            <h2 class="fw-bolder display-5 mb-1 text-dark">120+</h2>
+                            <p class="mb-0 fw-bold text-uppercase tracking-widest small">Volunteers</p>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <div class="card bg-info bg-opacity-10 text-info border-0 shadow-sm rounded-4 h-100">
-                        <div class="card-body py-5" style="color: #0c63e4;">
-                            <h1 class="display-3 mb-2"><i class="bi bi-stars"></i></h1>
-                            <h2 class="fw-bolder mb-1">15+</h2>
-                            <p class="mb-0 fw-medium">Drives Conducted 🧹</p>
+                    <div class="card bg-info-subtle text-info border-0 shadow-sm rounded-4 h-100 transition-all text-center" style="color: #0c63e4;">
+                        <div class="card-body py-5">
+                            <div class="bg-white rounded-circle d-inline-flex justify-content-center align-items-center mb-3 shadow-sm" style="width: 80px; height: 80px;">
+                                <i class="bi bi-stars fs-1" style="color: #0c63e4;"></i>
+                            </div>
+                            <h2 class="fw-bolder display-5 mb-1 text-dark">15+</h2>
+                            <p class="mb-0 fw-bold text-uppercase tracking-widest small">Drives Conducted</p>
                         </div>
                     </div>
                 </div>
@@ -149,49 +191,55 @@
         </div>
     </div>
 
-    <div class="row mt-5 pt-4">
-        <div class="col-12 text-center mb-5">
-            <h3 class="fw-bold">Upcoming Events <span class="text-muted fs-5 fw-normal">(Next 7–10 Days)</span></h3>
+    <div class="row mt-5 pt-4" id="upcoming-events">
+        <div class="col-12 d-flex justify-content-between align-items-end mb-4 border-bottom pb-3">
+            <div>
+                <h3 class="fw-extrabold mb-1">Upcoming Events</h3>
+                <span class="text-muted fw-medium">Join initiatives happening in the next 7–10 Days</span>
+            </div>
+            <a href="{% url 'events' %}" class="btn btn-outline-primary rounded-pill px-4 d-none d-md-block fw-bold">View All Events</a>
         </div>
         
         <div class="row g-4 justify-content-center">
             {% for event in upcoming_events %}
             <div class="col-md-6 col-lg-4">
-                <div class="card h-100 shadow-sm border-0 rounded-4 transition-all">
-                    <div class="card-body p-4">
-                        <span class="badge bg-success-subtle text-success rounded-pill px-3 py-2 mb-3 shadow-sm">Upcoming</span>
-                        <h4 class="fw-bold mb-3 text-truncate">{{ event.title }}</h4>
+                <div class="card h-100 shadow-sm border-0 rounded-4 transition-all overflow-hidden bg-white">
+                    <div class="card-body p-4 position-relative">
+                        <div class="position-absolute top-0 end-0 p-3 opacity-10">
+                            <i class="bi bi-calendar-event" style="font-size: 4rem;"></i>
+                        </div>
+                        <span class="badge bg-success-subtle text-success rounded-pill px-3 py-2 mb-3 shadow-sm border border-success border-opacity-25 fw-bold">Upcoming</span>
+                        <h4 class="fw-bold mb-3 text-truncate text-dark">{{ event.title }}</h4>
                         
                         <div class="mb-4 small text-secondary">
-                            <div class="d-flex align-items-center mb-2">
-                                <i class="bi bi-calendar-event me-2 text-primary fs-5"></i> 
-                                <span class="fw-medium">{{ event.date }}</span>
+                            <div class="d-flex align-items-center mb-2 bg-light p-2 rounded-3">
+                                <i class="bi bi-calendar3 me-3 text-primary fs-6"></i> 
+                                <span class="fw-bold text-dark">{{ event.date }}</span>
                             </div>
-                            <div class="d-flex align-items-center">
-                                <i class="bi bi-geo-alt me-2 text-primary fs-5"></i> 
-                                <span class="fw-medium text-truncate">{{ event.venue }}</span>
+                            <div class="d-flex align-items-center bg-light p-2 rounded-3">
+                                <i class="bi bi-geo-alt-fill me-3 text-primary fs-6"></i> 
+                                <span class="fw-bold text-dark text-truncate">{{ event.venue }}</span>
                             </div>
                         </div>
                     </div>
                     <div class="card-footer bg-transparent border-0 p-4 pt-0">
-                        <a href="{% url 'event_detail' event.id %}" class="btn btn-primary w-100 rounded-pill fw-bold shadow-sm py-2">
-                            View Event & Join <i class="bi bi-arrow-right-short ms-1 fs-5 align-middle"></i>
+                        <a href="{% url 'event_detail' event.id %}" class="btn btn-dark w-100 rounded-pill fw-bold shadow-sm py-2 hover-lift">
+                            View Details <i class="bi bi-arrow-right-short ms-1 fs-5 align-middle"></i>
                         </a>
                     </div>
                 </div>
             </div>
             {% empty %}
-            <div class="col-12 text-center py-4">
-                <div class="bg-light d-inline-block p-4 rounded-circle mb-3">
+            <div class="col-12 text-center py-5 bg-white rounded-4 shadow-sm">
+                <div class="bg-light d-inline-flex justify-content-center align-items-center p-4 rounded-circle mb-3">
                     <i class="bi bi-calendar-x display-5 text-muted"></i>
                 </div>
-                <h5 class="fw-bold text-muted">No upcoming events right now. Check back soon!</h5>
+                <h4 class="fw-bold text-dark">No upcoming events right now.</h4>
+                <p class="text-muted mb-0">Check back soon for new community initiatives!</p>
             </div>
             {% endfor %}
         </div>
     </div>
-</div> ```
-
 </div>
 {% endblock %}
 
@@ -276,8 +324,8 @@
                     resultsBox.innerHTML = '';
                     json.data.forEach(station => {
                         const div = document.createElement('div');
-                        div.className = 'suggestion-item';
-                        div.innerHTML = `<strong>${station.station.name}</strong> <span class="badge bg-light text-body float-end">AQI: ${station.aqi}</span>`;
+                        div.className = 'suggestion-item rounded-3 mb-1';
+                        div.innerHTML = `<strong class="text-dark">${station.station.name}</strong> <span class="badge bg-primary text-white float-end">AQI: ${station.aqi}</span>`;
                         div.onclick = () => selectStation(station.uid);
                         resultsBox.appendChild(div);
                     });
